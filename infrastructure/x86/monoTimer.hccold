@@ -1,0 +1,92 @@
+#ifndef MONOTIMER_H
+#define MONOTIMER_H
+
+#include<vector>
+#include<functional>
+#include<future>
+
+static inline
+uint32_t monomillis(){
+	return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+};
+
+struct TaskStruct {
+	uint64_t id;
+	unsigned int due;
+	unsigned int interval;
+	std::function<void (void)> f;
+public:
+	TaskStruct(unsigned int due0, std::function<void (void)>f0,unsigned int interval0=0);
+
+
+};
+
+
+
+#include <iostream>
+
+
+
+void monoCancelTimeOut(TaskStruct*ts);
+
+static std::timed_mutex createmutex;
+static std::mutex tasksmutex,waitmutex;
+static std::vector<TaskStruct*> monotasks;
+static bool monowait=false;
+
+static std::vector<TaskStruct*> getTasks(){
+	return monotasks;}
+
+template <typename... T>
+static TaskStruct*  basemonoSetTimeOut(unsigned int ms, bool repeat, void(fc)(T...),T... params){
+	// std::function<void (T...) >
+
+	//std::function<void (int)>
+
+	std::cout << "basemonoSetTimeOut "  << std::endl;
+
+	std::function<void (void)> ffc=std::bind(fc,params...);
+
+	TaskStruct *ts=new TaskStruct(monomillis()+ms, ffc);
+	if(repeat) ts->interval=ms;
+	tasksmutex.lock();
+	monotasks.push_back((ts));
+	tasksmutex.unlock();
+	//	std::cout << "monosetTimeOut:unlocking... "  << std::endl;
+	waitmutex.lock();
+	if(monowait) {//std::cout << "monosetTimeOut:closed lock... "  << std::endl;
+		createmutex.unlock();
+	}
+	waitmutex.unlock();
+	//	else {std::cout << "monosetTimeOut:open lock... "  << std::endl;}
+	return ts;
+	//	std::cout << "monosetTimeOut:unlocked... "  << std::endl;
+};
+template <typename... T>
+static TaskStruct*  monoSetTimeOut(unsigned int ms, bool repeat, void(fc)(T...),T... params){
+	return basemonoSetTimeOut(ms,repeat,fc,params...);
+}
+
+
+
+TaskStruct* monoSetTimeOut(unsigned int ms, bool repeat, void(fc)());
+
+TaskStruct* monoSetTimeOut(unsigned int ms, bool repeat, void(fc)(int),int i);
+TaskStruct* monoSetTimeOut(unsigned int ms, bool repeat, void(fc)(int,std::string),int i,std::string str);
+
+
+
+TaskStruct*monoFind(uint64_t id);
+
+void monoRunOnce(bool canwait=true, unsigned int waitms=0);
+
+void monoRun();
+
+void monoRunFor(unsigned int ms);
+
+void delay(int ms);
+void yield();
+
+static inline uint32_t millis(){return monomillis();};
+
+#endif

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<meta http-equiv="Cache-control" content="public">
+
+<head>
+    <style>
+        .pure-table {
+            border-collapse: collapse;
+            border-spacing: 0;
+            empty-cells: show;
+            border: 1px solid #cbcbcb
+        }
+
+        .pure-table caption {
+            color: #888;
+            font: italic 112%/1 Helvetica, sans-serif;
+            padding: .5em 1;
+            text-align: center
+        }
+        .pure-fieldset {
+        	border-width: 1px;
+            border-style: solid;
+       		border-color:#888;
+        }
+		.pure-fieldset legend{
+		    color: #888;
+            font: italic 125%/1 Helvetica, sans-serif;
+         //   text-align: center
+		}
+        .pure-table td,
+        .pure-table th {
+            border-left: 1px solid #cbcbcb;
+            border-width: 0 0 0 1px;
+            font-size: inherit;
+            margin: 0;
+            overflow: visible;
+            padding: .5em 1em
+        }
+
+        .pure-table td:first-child,
+        .pure-table th:first-child {
+            border-left-width: 0
+        }
+
+        .pure-table td {
+            background-color: transparent
+        }
+
+        .pure-table-odd td,
+        .pure-table-striped tr:nth-child(2n-1) td {
+            background-color: #f2f2f2
+        }
+
+        .pure-table-bordered td {
+            border-bottom: 1px solid #cbcbcb
+        }
+
+        .pure-table-bordered tbody>tr:last-child>td {
+            border-bottom-width: 0
+        }
+
+        h1 {
+            font-size: 1.75em;
+            margin: .67em 0;
+        }
+
+        body {
+            font-family: FreeSans, Arimo, 'Droid Sans', Helvetica, Arial, sans-serif;
+        }
+        
+        .dygraph-legend { text-align: right; }
+   
+		  .dygraph-roller {
+		  position: absolute;
+		  x: 10;
+		  z-index: 10;
+        
+    </style>
+	 
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <script src="/js/IOktopusClient.js"></script>
+</head>
+
+<body>
+	<title>IOktopus</title>
+    <h1>IOktopus-Client v0.1</h1>	
+    <div id='userinterface'><p>Loading...</p></div>
+    <div id='loginterface'></div>
+	<div id='serverstatus'></div>
+	<div id='debug'><p></p></div>
+    <br>&emsp;&emsp;
+ 
+	</body>
+
+</html>
