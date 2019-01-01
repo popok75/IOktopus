@@ -6,6 +6,10 @@ IOktopus is a sensor logger and controller for ESP8266. Current version runs a c
 	- provides a browser alarm on each sensor value
 	- keeps and show max min values 
 	- allows to explore sensors history in a zoomable graph (saved values in board memory, up to 1000items)
+	- display board state (responsiveness, last boot)
+	
+Full version of IOktopus will additionally allow to :
+	- display current and history of actuators values (relays, leds, motors,piezo)
 	- directely control actuators values from browser
 	- activate rules that control actuators from sensor values or timestamp (thermo/humidistat, timer)
 	- build custom rules from basic operations, such as assign, compare, time, expressions (tinyexpression integration)
