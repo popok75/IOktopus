@@ -30,7 +30,7 @@ public:
 	void autoread(unsigned int sec);
 	void autoreadMS(unsigned int ms);
 	virtual bool read();
-	void saveValue(std::string name,std::string value);
+	void saveValue(std::string name,std::string value,uint64_t tsms);
 	uint32_t getValues();
 
 	virtual bool sensorTick()=0;	//if sensorTick return true, the autoread is stopped, why ?
@@ -84,9 +84,10 @@ uint32_t SensorReader::getValues(){
 }
 
 
-void SensorReader::saveValue(std::string name,std::string value){
+void SensorReader::saveValue(std::string name,std::string value,uint64_t tsms=0){
 //	print("SensorReader::saveValue");
-	mstimestamp= millis();
+	if(tsms==0) mstimestamp= millis();
+	else mstimestamp=tsms;
 //	timestamp=CLOCK.getTime();
 
 	reading=false;ready=true;	// save only when finished reading or change this line
@@ -94,6 +95,7 @@ void SensorReader::saveValue(std::string name,std::string value){
 // 	println(std::string()+"SensorReader::saveValue: "+name+" "+value);
 //	std::multimap<std::string,std::string>valmap=;//,{"ts",to_string(CLOCK.getTimeMS())}};
 	StringMapEvent arg({{name+RF("/val"),value}});
+	if(tsms) arg.values.set(name+RF("/ts"),to_string(tsms));
 #ifdef ESP8266
 #ifdef MEMDEBUG
 		print(RF("SensorReader::saveValue : free memory :"));	println(ESP.getFreeHeap(),DEC);

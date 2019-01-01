@@ -1,0 +1,120 @@
+/*
+  This in an Arduino library to save exception details
+  and stack trace to flash in case of ESP8266 crash.
+  Please check repository below for details
+
+  Repository: https://github.com/krzychb/EspSaveCrash
+  File: EspSaveCrash.cpp
+  Revision: 1.0.2
+  Date: 18-Aug-2016
+  Author: krzychb at gazeta.pl
+
+  Copyright (c) 2016 Krzysztof Budzynski. All rights reserved.
+
+  This application is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  This application is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
+/* modified by me 28/18/2018	*/
+
+#include "EspSaveCrashSpiffs.h"
+
+#include <FS.H>
+
+char *staticfn=0;
+
+void savetoSpiffs(struct rst_info * rst_info, uint32_t stack, uint32_t stack_end,Print& outputDev ){
+
+	uint32_t crashTime = millis();	// could get access to real time clock
+	outputDev.printf("Crash # at %ld ms\n",crashTime);
+
+	outputDev.printf("Reason of restart: %d\n", rst_info->reason);
+	outputDev.printf("Exception cause: %d\n", rst_info->exccause);
+	outputDev.printf("epc1=0x%08x epc2=0x%08x epc3=0x%08x excvaddr=0x%08x depc=0x%08x\n", rst_info->epc1, rst_info->epc2, rst_info->epc3, rst_info->excvaddr, rst_info->depc);
+	outputDev.println(">>>stack>>>");
+	int16_t stackLength = stack_end - stack;
+	uint32_t stackTrace;
+	// write stack trace to EEPROM
+	for (int16_t i = 0; i < stackLength; i += 0x10)
+	{
+		outputDev.printf("%08x: ", stack + i);
+		for (byte j = 0; j < 4; j++)
+		{
+			uint32_t* byteptr = (uint32_t*) (stack + i+j*4);
+			stackTrace=*byteptr;
+			outputDev.printf("%08x ", stackTrace);
+		}
+		outputDev.println();
+
+	}
+	outputDev.println("<<<stack<<<\n");
+}
+
+
+
+/**
+ * This function is called automatically if ESP8266 suffers an exception
+ * It should be kept quick / consise to be able to execute before hardware wdt may kick in
+ */
+extern "C" void custom_crash_callback(struct rst_info * rst_info, uint32_t stack, uint32_t stack_end )
+{
+//	Serial.println("Custom save crash");
+	//savetoSpiffs(rst_info, stack, stack_end,fileprinter);
+	//fileprinter.close();
+	class StringPrinter2 : public Print {
+	public:
+	  String str="";
+	  StringPrinter2(){};
+	  virtual size_t write(const uint8_t character){str+=character;};
+	  virtual size_t write(const uint8_t *buffer, size_t size){
+		  String str2=String((const char *)buffer);
+		  str2.remove(size);
+	      str+=str2;
+	    };
+	} strprinter2;
+	savetoSpiffs(rst_info, stack, stack_end,strprinter2);
+
+//	char mess[20]="hello\n",*fname="/crashdump.txt";
+//	String str="hello\n";
+//	str+="myfriend\n";
+	String fn;
+	if(staticfn) fn=String(staticfn);
+	else fn=String(F(CRASHFILEPATH));
+	File f = SPIFFS.open(fn, "a");
+	if(!f) f= SPIFFS.open(fn, "w");
+	if(f.size()>MAXCRASHFILESIZE) {f.close();Serial.println(String(F("File too big : "))+fn+String(' ')+String(f.size())+String(F("\n"))); return ;}// do nothing, maybe should erase the file instead ?
+	if(f) {
+		unsigned int w=f.write((uint8_t*)strprinter2.str.c_str(), strprinter2.str.length());
+		f.close();
+	}
+	Serial.println(String(F("Trace saved to file : "))+fn+String(F("\n")));
+}
+
+
+/**
+ * The class cunstructor that has nothing to initialise
+ */
+EspSaveCrashSpiffs::EspSaveCrashSpiffs(char *otherfilename) {staticfn=otherfilename;}
+
+
+void EspSaveCrashSpiffs::clearFile(void)
+{
+	String fn;
+	if(staticfn) fn=String(staticfn);
+	else fn=String(F(CRASHFILEPATH));
+	SPIFFS.remove(fn);
+
+}
+
+EspSaveCrashSpiffs SaveCrashSpiffs;

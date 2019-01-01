@@ -3,21 +3,31 @@
 
 class Component{
 	constructor(name=""){
-		this.components={};
+		this.components=[];
 		this.name=name;
 		//	console.log("Component");
 	}
 
-	addComponent(comp,name=0){
-		if(!name) name=comp.name;
+	addComponent(comp){
+	//	if(!name) name=comp.name;
 		if(comp==undefined || comp.name==undefined){
 			//problem
 			console.log("problem");
 		}
-		this.components[name]=comp;}
+		this.components.push(comp);
+	}
+	addComponentAlphabeticOrder(comp,name=0){
+		if(!name) name=comp.name;
+		if(comp==undefined || comp.name==undefined){console.log("problem");}//problem
+		for(var i in this.components){
+			if(this.components[i].name>name) {this.components.splice(i,0,comp);return;} 
+		}
+		this.components.push(comp);
+		}
 
-	getComponent(name){return this.components[name];}
-	hasComponent(name){return (name in this.components);}
+	getComponent(name){for(var i in this.components){if(this.components[i].name==name) return this.components[i];}return null;}//		return this.components[name];
+		
+	hasComponent(name){for(var i in this.components){if(this.components[i].name==name) return true;}return false;}
 
 	getHtml(){	
 		var html="";
@@ -43,10 +53,10 @@ class Component{
 		return html;
 	}
 
-	findByName(tofind){
-		for(name in this.components) {
-			if(name==tofind) return this.components[name];
-			var obj= this.components[name].findByName(tofind);
+	findByName(tofind){	//recursive find component
+		for(var i in this.components) {
+			if(this.components[i].name==tofind) return this.components[i];
+			var obj= this.components[i].findByName(tofind);
 			if(obj) return obj;
 		}
 		return undefined;

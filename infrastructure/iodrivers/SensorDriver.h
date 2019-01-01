@@ -26,6 +26,7 @@ public:
  	virtual GenString channelType(unsigned int i)=0;
  	virtual bool isConnected(unsigned int i)=0;
  	virtual float value(unsigned int i)=0;
+ 	virtual uint64_t timestamp(unsigned int i)=0;
 
  	virtual float tickms(){return 100;};
  	virtual float minafterread(){return 0;};
@@ -43,6 +44,7 @@ public:
 
 	virtual bool isConnected(unsigned int i){return !disconnected;}
 	virtual float value(unsigned int i){if(i==0) return temp;else return NAN;};
+	virtual uint64_t timestamp(unsigned int i){return 0;};
 };
 
 class TempRHDriver : public SensorDriver {
@@ -55,6 +57,7 @@ public:
 	virtual GenString channelType(unsigned int i){if(i==0) return RF("Temperature"); else if(i==1) return RF("Humidity");return "";};
 	virtual bool isConnected(unsigned int i){return !disconnected;}
 	virtual float value(unsigned int i){if(i==0) return temp; else if(i==1) return hum; return NAN;};
+	virtual uint64_t timestamp(unsigned int i){return 0;};
 };
 
 

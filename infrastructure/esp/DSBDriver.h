@@ -34,7 +34,7 @@ class DSBDriver : public TempDriver
  	uint32_t lastts=0;
 	DSBBus *dsbbus;
 	unsigned int id;
-
+	bool retry=true;
 public:
 	DSBDriver(unsigned int num, std::vector<unsigned int >pins0): TempDriver(num,pins0){
 		id=idgenerate++;
@@ -79,6 +79,7 @@ class DSBBus {
 	DallasTemperature DS18B20;
 
 public:
+
 	bool reading=false,redetect=true;bool alldisconnected=true;
 	long reqts=0; //The last measurement timestamp
 
@@ -88,6 +89,7 @@ public:
 		//	for( float &f : tempDev) f=DEVICE_DISCONNECTED_C ;	// fill with DEVICE_DISCONNECTED_C  in case of
 		SetupDS18B20();
 	}
+
 	bool read(){
 //		Serial.println("DSBBus::read ");
 		if(reading) return false;
@@ -205,6 +207,7 @@ public:
 		else Serial.println(RF("OFF"));
 
 		redetectSensors();
+
 		return;
 	}
 };
@@ -239,7 +242,7 @@ DSBBus *getDSBBus(unsigned int pin){
 
 
 bool DSBDriver::sensorTick(){	// read temp
-//	Serial.println(RF("DSBDriver sensorTick ")+to_string((uint64_t)dsbbus));
+// 	println(RF("DSBDriver sensorTick ")+to_string((uint64_t)dsbbus));
 	//		if(dsbbus->reading) Serial.println("true");
 	long sts=dsbbus->getTimestamp(id);
 	if(sts==lastts){
@@ -262,7 +265,7 @@ bool DSBDriver::sensorTick(){	// read temp
 	if(sts!=lastts) {
 		lastts=sts;
 		temp=dsbbus->getTemperature(id);
-//		Serial.println(String("DSBDriver sensorTick temp id:")+to_string(id).c_str()+" val:"+String(temp).c_str());
+ 	//	Serial.println(String("DSBDriver sensorTick temp id:")+to_string(id).c_str()+" val:"+String(temp).c_str());
 		if (temp==DEVICE_DISCONNECTED_C){
 			disconnected=true;
 			return true;
@@ -271,8 +274,12 @@ bool DSBDriver::sensorTick(){	// read temp
 		if(String(temp)==String(DEVICE_INIT)){
 			disconnected=true;
 			temp=NAN;
+			//read();
+			if(retry) {retry=false;return false;}
 			return true;
 		}
+		retry=true;
+//		dsbbus->firsttime=false;
 //				Serial.println(String("DSBDriver not an init"));
 
 	//	saveValue(tempname,to_stringWithPrecision(temp,2));

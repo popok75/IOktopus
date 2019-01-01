@@ -32,13 +32,14 @@ public:
 		emit(MODELUPDATED, &e);
 	};
 
-	bool updateVal(GenString path, GenString val){
+	bool updateVal(GenString path, GenString val, bool notifychange=true){
 		bool b= data.updateVal(path,val);
 		GenString pls=getPathLeaf(path);
 		GenString br=getPathBranch(path);
 		if(pls==VALUEFIELD) updateMinMax(br,val); // if value was modified update minmax
 		GenMap map={{pls,val}};
-		emitChange(br,map);
+		//if(pls==TSFIELD) map.set(VALUEFIELD,get(br+"/"+VALUEFIELD));	//we think having
+		if(notifychange) emitChange(br,map);
 		return b;
 	};
 
@@ -84,11 +85,10 @@ public:
 					!it.isEnd();
 					it++)
 				{
-
-				updateVal(it.key(),it.value());
-
+				updateVal(it.key(),it.value(),false);
 				}
 			//should emit one change
+			emit(MODELUPDATED, emap);
 			//println("IODatav01:notify :"+ename+" "+cell.key+" "+cell.value);
 			println(GenString()+RF("updated model to:")+getAsJson());
 

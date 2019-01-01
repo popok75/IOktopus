@@ -59,7 +59,7 @@ double strToDouble(std::string str){
 	return srcval;
 };
 
-unsigned long strToUnsignedLong(std::string value){
+uint64_t strToUint64(std::string value){
 
 	//	unsigned long srcval=std::stoul (str);
 	//	return srcval;
@@ -71,6 +71,9 @@ unsigned long strToUnsignedLong(std::string value){
 	}
 	return result;
 };
+uint64_t strToUnsignedLong(std::string value){
+	return strToUint64(value);
+}
 
 GenString getMin(GenString v0,GenString v1){
 	if(isDigit(v0)){

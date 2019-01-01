@@ -12,6 +12,12 @@
 #define JSONDQ false
 #define JSONMILLIS false
 
+#define NODESPATH "/nodes/"
+#define VALKEYWORD "val"
+#define TSKEYWORD "ts"
+
+#define MODELUPDATEDEVENT "modelUpdated"
+#define GETJSONLOGEVENT "getLogJson"
 
 #include "IOLoggerMemStore.h"
 
@@ -70,20 +76,58 @@ class IOLoggerv016: public IOLoggerGen
 	uint64_t getMillis64(){return CLOCK32.getMS();}//millis64();};
 
 	bool notify(GenString command,Event *event){
-		if(command==RF("modelUpdated")){
-			NamedStringMapEvent *namev=0;
+		if(command==RF(MODELUPDATEDEVENT)){
+			StringMapEvent *evmap=0;
+			if(event->getClassType()==StringMapEventTYPE) evmap=(StringMapEvent*)(event);
+			if(!evmap) return false;
+			GenString vnamesave;
+
+			// find a val, check if we have the ts, save it
+			std::vector<GenString> loaded ;
+			// extract first var name
+				// see if we have a val and ts -> save
+			GenString nodespath=RF(NODESPATH);
+			for(auto it : evmap->values){
+				GenString key=it.key();
+				GenString vname=getPathBranch(key).erase(0,nodespath.size());
+				bool newvar=true;
+				for(GenString ls : loaded) if(ls==vname) {newvar=false;break;}
+				if(!newvar) continue;
+				println(GenString()+key);
+				println(GenString()+vname);
+				GenString valstr=evmap->values.get(nodespath+vname+'/'+RF(VALKEYWORD));
+				if(valstr.empty()) continue;
+				GenString tsstr=evmap->values.get(nodespath+vname+'/'+RF(TSKEYWORD));
+				if(isDigit(valstr)) {
+					double dval=strToDouble(valstr);
+					uint64_t nts=0;
+					if(isDigit(tsstr)) nts=strToUint64(tsstr);
+					saveToLog(vname,dval,nts);
+					loaded.push_back(vname);
+				}
+			}
+			if(!loaded.empty()) return true;
+			else return false;
+/*
+
+	 		NamedStringMapEvent *namev=0;
 			if(event->getClassType()==NamedStringMapEventTYPE) namev=(NamedStringMapEvent*)(event);
 			if(!namev) return false;
 
-			if(startsWith(namev->ename,RF("/nodes/")) && namev->values.has(RF("val"))){	//log only nodes
+			if(startsWith(namev->ename,RF(NODESPATH)) && namev->values.has(RF("ts"))){	//log only nodes // at ts change, val is sent too
 				GenString strval=namev->values.get(RF("val"));
 				if(isDigit(strval)){
 					double dval=strToDouble(strval);
-					saveToLog(getPathLeaf(namev->ename),dval);
+					GenString tsstr=namev->values.get(RF("ts"));
+					uint64_t nts=0;
+					if(isDigit(strval)) {
+						nts=strToUint64(tsstr);
+					}
+					saveToLog(getPathLeaf(namev->ename),dval,nts);
 				} else return false;
-			}
+			}*/
 		}
-		if(command==RF("getLogJson")){
+		if(command==RF(GETJSONLOGEVENT)){
 			MultipartStringEvent *strev=0;
 			if(event->getClassType()==MultipartStringEventTYPE) strev=(MultipartStringEvent*)(event);
 
@@ -109,21 +153,22 @@ class IOLoggerv016: public IOLoggerGen
 
 
 
-	bool saveToLog(GenString cname, double dval){
+	bool saveToLog(GenString cname, double dval,uint64_t tsdata){
 #ifdef ESP8266
  	print(RF("IOLoggerv016::saveToLog - memory :"));	 println(ESP.getFreeHeap(),DEC);
 #endif
-		uint64_t ts=getMillis64();
+		uint64_t ts=tsdata;
+		if(!ts) ts=getMillis64();
 		uint64_t diff=logdata.getLastTSMS(cname);
 //		println(GenString()+RF("IOLoggerMemStore::saveToLog : new ts ")+to_string(ts)+RF(" saved ts:")+to_string(diff));
 		if(diff) {
 			//		println(GenString()+RF("IOLoggerMemStore::saveToLog : new ts ")+to_string(ts)+RF(" saved ts:")+to_string(diff));
 			diff=ts-diff;
 			diff=diff/1000;
-			//	    println(GenString()+RF("logdiff:")+to_string(diff)+RF(" ")+to_string(refreshPeriodSec));
-			if(diff<refreshPeriodSec) return false; // got a value too soon
+		//    println(GenString()+RF("logdiff:")+to_string(diff)+RF(" ")+to_string(refreshPeriodSec));
+			if((diff+1)<refreshPeriodSec) return false; // got a value too soon
 		}
-//		println("adding data");
+		println(GenString()+"adding data : "+cname+ " v:"+to_stringWithPrecision(dval,2)+" ts:"+to_string(ts));
 		return logdata.addData(cname,dval,ts);
 	}
 

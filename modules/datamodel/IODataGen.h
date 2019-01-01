@@ -12,6 +12,7 @@
 #define MAXFIELD "maxval"
 */
 #define VALUEFIELD RF("val")
+#define TSFIELD RF("ts")
 #define MINFIELD RF("minval")
 #define MAXFIELD RF("maxval")
 #define MODELUPDATED RF("modelUpdated")

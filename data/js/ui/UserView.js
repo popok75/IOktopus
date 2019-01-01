@@ -16,7 +16,7 @@ class UserView  extends EventEmitter {
 				subgrouppanel=grouppanel.getComponent(subgroup);
 			else {
 				subgrouppanel = new Table(subgroup);
-				grouppanel.addComponent(subgrouppanel);
+				grouppanel.addComponent(subgrouppanel);	
 			}
 		} else {
 			grouppanel = this.panel.addPanel(group,"display:inline-block;");
@@ -25,7 +25,7 @@ class UserView  extends EventEmitter {
 		}
 
 		var nview= new NodeView(name,data);
-		subgrouppanel.addComponent(nview.getComponent());
+		subgrouppanel.addComponentAlphabeticOrder(nview.getComponent());	//add it alphabetically sorted
 
 		return nview;
 	};

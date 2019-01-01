@@ -65,8 +65,8 @@ public:
 	//				println("GenReader::sensorTick 4");
 
 					float f=sensordriver->value(i);
-					if(isnan(f)) saveValue(sensordriver->channelName(i),RF(INIT_STATE));
-					else saveValue(sensordriver->channelName(i),to_stringWithPrecision(sensordriver->value(i),2));
+					if(isnan(f)) saveValue(sensordriver->channelName(i),RF(INIT_STATE),sensordriver->timestamp(i));
+					else saveValue(sensordriver->channelName(i),to_stringWithPrecision(sensordriver->value(i),2),sensordriver->timestamp(i));
 				}
 				else saveValue(sensordriver->channelName(i),RF(DISCONNECTED_STATE));
 			}

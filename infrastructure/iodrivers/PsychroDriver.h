@@ -58,7 +58,7 @@ class PsychroDriver : public SensorDriver
 	bool waitingwet=true, waitingdry=true;
 	bool drydisconnected=false, wetdisconnected=false;
 	unsigned int pinwet=0,pindry=0;
-
+	uint64_t mstimestamp=0;
 public:
 	PsychroDriver(unsigned int num, std::vector<unsigned int> pins):SensorDriver(num,pins){
 /*
@@ -76,6 +76,10 @@ public:
 	~PsychroDriver(){if(wetbulb) delete wetbulb;if(drybulb) delete drybulb;}
 
 	virtual unsigned int channelNumber(){return 3;};
+
+	virtual uint64_t timestamp(unsigned int i){
+		if(i<3) return mstimestamp;
+		return 0;};
 	virtual GenString channelName(unsigned int i){
 		if(i==0) return GenString()+RF(TEMPERATURE_CHANNEL_TYPE)+RF("-DryBulb");
 		if(i==1) return GenString()+RF(TEMPERATURE_CHANNEL_TYPE)+RF("-WetBulb");
@@ -119,111 +123,37 @@ public:
 
  		println(RF("PsychroReader init with success!"));
 
-/*
-		//could emit one event only
-		StringMapEvent arg({{humname+RF("/type"),RF("input")},{humname+RF("/unit"),RF("%")}});//		std::multimap<std::string,std::string>valmap={{"Humidity/type","input"},{"Humidity/unit","%"}};//,{"ts",to_string(CLOCK.getTimeMS())}};
-		emit(&arg);
-
-		StringMapEvent arg2({{wetname+RF("/type"),RF("input")},{wetname+RF("/unit"),RF("°C")}});//		valmap={{"Temperature/type","input"},{"Temperature/unit","°C"}};//,{"ts",to_string(CLOCK.getTimeMS())}};
-		emit(&arg2);
-
-		StringMapEvent arg3({{dryname+RF("/type"),RF("input")},{dryname+RF("/unit"),RF("°C")}});//		valmap={{"Temperature/type","input"},{"Temperature/unit","°C"}};//,{"ts",to_string(CLOCK.getTimeMS())}};
-		emit(&arg3);
-*/
 		return true;
 	};
 
-/*
-	bool notify(GenString ename,Event*event=0){
-		// if one sensor disconnected -> hum=disconnected and other continue update
 
-	//	println(GenString()+"PsychroReader::notify ");
-		StringMapEvent *emap=0;
-		if(event->getClassType()==StringMapEventTYPE) emap=(StringMapEvent*)(event);
-		if(!emap || emap->values.empty()) return false; //pb
-		println(GenString()+"PsychroReader::notify "+emap->values.asJson());
-
-		// save the value, wait for the other sensor
-		std::string str=emap->values.get(dryname+RF("/val"));
-		bool dry=true;//, disconnected=true;
-
-		if(str.empty()){
-			str=emap->values.get(wetname+RF("/val"));
-			waitingwet=false;
-			if(str==RF(DISCONNECTED_STATE) || str==RF(INIT_STATE) || str.empty()) {
-				wetdisconnected=true;
-				saveValue(wetname, str);
-				if(!waitingdry) saveValue(humname, RF(DISCONNECTED_STATE));
-				return true;
-			}
-			wetdisconnected=false;
-			dry=false;
-		} else {
-			waitingdry=false;
-			if(str==RF(DISCONNECTED_STATE) || str==RF(INIT_STATE)) {
-				drydisconnected=true;
-				saveValue(dryname, str);
-				if(!waitingwet) saveValue(humname, RF(DISCONNECTED_STATE));
-				return true;
-			}
-			drydisconnected=false;
-		}
-		float f=strToDouble(str);
-		if(dry) dryval=f; else wetval=f;
-
-		if(!waitingdry && !waitingwet) {
-			if(drydisconnected || wetdisconnected) {// if one sensor fail, the other will update its value and humidity is disconnected
-				if(!wetdisconnected) {saveValue(wetname, to_stringWithPrecision(wetval,2));}
-				if(!drydisconnected) {saveValue(dryname, to_stringWithPrecision(dryval,2));}
-				saveValue(humname, RF(DISCONNECTED_STATE));
-			} else {// if we have 2 values, we update the humidity
-				// dryval is always bigger than wetval
-				if(dryval<wetval){float t=dryval;dryval=wetval;wetval=t;wetbulb->rename(dryname);drybulb->rename(wetname);} // maybe reader names should be switched ?
-				saveValue(dryname, to_stringWithPrecision(dryval,2));
-				saveValue(wetname, to_stringWithPrecision(wetval,2));
-				humval=getPsychroEstimate(dryval,wetval);
-		 		saveValue(humname, to_stringWithPrecision(humval,2));
-			}
-		}
-
-		return true;
-	}
-
-
-
-	bool read(){
- 		if(!reading) {println("Psychro::read !reading");
-			reqms=millis();
-			wetbulb->read();
-			drybulb->read();
-			reading=true;
-			waitingwet=true,waitingdry=true;
-			return true;
-		} else {println("Psychro::read reading");
-			return false;
-		}
- 	}
-*/
  	bool sensorTick(){
+
+ //		println(RF("Psychro::Driver: sensorTick"));
  		//bool ret=false;
  		if(waitingwet && wetbulb->sensorTick()){
+ 			mstimestamp=CLOCK32.getMS();//millis64();
+ 			println(RF("PsychroDriver::sensorTick mstimestamp updated with :")+to_string(mstimestamp));
  			waitingwet=false;
  			if(wetbulb->isConnected(0)) {
  				wetval=wetbulb->value(0);
- 			//	println(RF("Wet bulb updated with :")+to_stringWithPrecision(wetval,2));
+ //				println(RF("Wet bulb updated with :")+to_stringWithPrecision(wetval,2));
  				wetdisconnected=false;}
  			else wetdisconnected=true;
- 			if(drydisconnected) {waitingdry=true;waitingwet=true;return true;}
+ 			if(drydisconnected && !waitingdry) {waitingdry=true;waitingwet=true;return true;}
  		};
+// 		println(GenString()+RF("Psychro::Driver: sensorTick 2 wetdisconnected:")+to_string(wetdisconnected)+", waitingwet:"+to_string(waitingwet));
  		if(waitingdry && drybulb->sensorTick()){
+ 			mstimestamp=CLOCK32.getMS();//millis64();
  			waitingdry=false;
  			if(drybulb->isConnected(0)) {
  				dryval=drybulb->value(0);
- 			//	println(RF("dry bulb updated with :")+to_stringWithPrecision(dryval,2));
+ //			    println(RF("dry bulb updated with :")+to_stringWithPrecision(dryval,2));
  				drydisconnected=false;}
  			else drydisconnected=true;
- 			if(wetdisconnected) {waitingdry=true;waitingwet=true;return true;}
+ 			if(wetdisconnected && !waitingwet) {waitingdry=true;waitingwet=true;return true;}
  		};
+ //		println(RF("Psychro::Driver: sensorTick 3"));
 
  		if(!waitingdry && !waitingwet) {
 			if(!drydisconnected && !wetdisconnected) {
@@ -232,10 +162,12 @@ public:
 					SensorDriver *tmp=drybulb;drybulb=wetbulb;wetbulb=tmp;
 				}
 				humval=getPsychroEstimate(dryval,wetval);
+//				println(RF("humval updated with :")+to_stringWithPrecision(humval,2));
 			}
 			waitingdry=true;waitingwet=true;
 			return true;
 		}
+ //		println(RF("Psychro::Driver: sensorTick 4"));
 
  		return false;
  	} // do nothing & stop the ticker

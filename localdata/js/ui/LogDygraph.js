@@ -27,7 +27,7 @@ class LogGraphGroup {	//interface the data and the graphs
 				ok=true;
 				for(var col in this.colorset){
 					var delta=deltaE(hexToRgb(newcol),hexToRgb(this.colorset[col]));
-				//	console.log("color diff between "+newcol+" & "+col+":"+this.colorset[col]+" -> "+delta);
+					//	console.log("color diff between "+newcol+" & "+col+":"+this.colorset[col]+" -> "+delta);
 					if(delta<cthreshold) {
 						ok=false; break;
 					}
@@ -88,11 +88,11 @@ class LogGraphGroup {	//interface the data and the graphs
 		// create a range per variable
 		for(var i in this.groups) {
 			for(var j in this.groups[i]) {
-			 	graph.addRange(this.name+graphid,this.groups[i][j], this.colorset[graphid-1]);	// add a range slider for each group
+				graph.addRange(this.name+graphid,this.groups[i][j], this.colorset[graphid-1]);	// add a range slider for each group
 				graphid++;			    
 			}
 		}
-		
+
 		this.graph=graph;
 
 	};
@@ -116,7 +116,7 @@ class LogGraphGroup {	//interface the data and the graphs
 		this.component.addComponent(component2);
 
 	}
-	
+
 	prepareData(rawdata){
 		var seriesnamesy=getPropertySubArray(this.config.series.y,"name");
 		var seriesnamesy2=getPropertySubArray(this.config.series.y2,"name");
@@ -127,7 +127,7 @@ class LogGraphGroup {	//interface the data and the graphs
 			var series=getSeriesv15(rawdata,seriesnamesy.concat(seriesnamesy2));
 			return series;
 		}
-		
+
 		return data;
 	}
 }
@@ -155,8 +155,8 @@ function getRandomColor() {
 
 var seed = 1;
 function random() {
-    var x = Math.sin(seed++) * 10000;
-    return x - Math.floor(x);
+	var x = Math.sin(seed++) * 10000;
+	return x - Math.floor(x);
 }
 
 function deltaE(rgbA, rgbB) {
@@ -207,30 +207,32 @@ function hexToRgb(hex) {
 
 
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 class LogDygraph {
 	constructor(name){this.name=name;this.ranges=[];}
 
-	
+
 	getMainSeries(){
 		return this.data;
 	}
-	
+
 	init(data,config)
 	{	
 		this.config=config;
 		this.data=data;
 		var dataseries=this.getMainSeries();
 		var yunit="",y2unit="";
+		changeStylesheetRule(document.styleSheets[0], ".dygraph-legend","text-align","left");
 		if(config.axis){
 			if(config.axis.y2 && config.axis.y2.color) changeStylesheetRule(document.styleSheets[0], ".dygraph-axis-label-y2","color",config.axis.y2.color);
 			if(config.axis.y && config.axis.y.color) changeStylesheetRule(document.styleSheets[0], ".dygraph-axis-label-y","color",config.axis.y.color);
 			if(config.axis.y2 && config.axis.y2.unit) y2unit=config.axis.y2.unit;
 			if(config.axis.y && config.axis.y.unit) yunit=config.axis.y.unit;
 		}
-		changeStylesheetRule(document.styleSheets[0], ".dygraph-legend","text-align","right");
-		changeStylesheetRule(document.styleSheets[0], ".dygraph-legend","margin-right","100px");
+		//	changeStylesheetRule(document.styleSheets[0], ".dygraph-legend","text-align","right");
+		changeStylesheetRule(document.styleSheets[0], ".dygraph-legend","margin-left","80px");
+		//	changeStylesheetRule(document.styleSheets[0], ".dygraph-legend","width","200px");
 
 		var vunit="",v2unit=""
 			if(config.series.y[0].unit) vunit=config.series.y[0].unit;
@@ -255,7 +257,37 @@ class LogDygraph {
 		var vcolorsall=vcolorsy.concat(vcolorsy2);
 		this.vcolorsall=vcolorsall;
 		Dygraph.ANIMATION_DURATION=0;
-		
+
+		function legendFormatter(data) {
+			var sorted=data.series.sort(function(ao,bo){
+				var a=ao.label,b=bo.label;
+				if(a<b) return -1;
+				if(a==b) return 0;
+				if(a>b) return 1;
+			});
+			if (data.x == null) {
+				// This happens when there's no selection and {legend: 'always'} is set.
+
+				var legend= '' + sorted.map(function(series) {return '<span style="font-weight: bold; color: '+series.color+';">'+series.dashHTML +  series.labelHTML+'</span>' }).join('<br>');
+				return legend;
+			}
+
+			var html = this.getLabels()[0] + ': ' + data.xHTML;
+
+			sorted.forEach(function(series) {
+				var val=series.yHTML;
+				if(val==undefined) val="-";	
+				if (!series.isVisible) return;
+				var labeledData = '<span style="text-align: left; color: '+series.color+';">'+series.dashHTML +'&nbsp;'+  series.labelHTML + ': ' + val+'</span>';
+				if (series.isHighlighted) {
+					labeledData = '<b>' + labeledData + '</b>';
+				}
+				html += '<br>' + series.dashHTML + ' ' + labeledData;
+			});
+			return html; 
+			//	return data;
+		}
+
 		var opt={
 				labels: labels0,
 				animatedZooms: false,
@@ -263,36 +295,45 @@ class LogDygraph {
 				series: series0,
 				//      customBars: true,
 				title: title0,
-			 	pointSize: 1.5,
-			 	connectSeparatedPoints: true,
+				pointSize: 1.5,
+				connectSeparatedPoints: true,
 				drawPoints: true,
 				colors: vcolorsall,
 				ylabel: config.axis.y.label | "", y2label: config.axis.y2.label | "",
-				 
-				axes: { y: vf1, 
-					y2: vf2, 
-					axisLabelWidth: 100
-				},
-				legend: 'always',//showRangeSelector: true,
-				interactionModel: this.im,
-				showRoller: true//, errorBars: true
-			};
+				labelsSeparateLines: true,
+				labelsShowZeroValues: false,
+				highlightSeriesBackgroundAlpha : 0.75,
+				highlightSeriesOpts: { 
+					strokeWidth: 2,
+					strokeBorderWidth: 1,
+					highlightCircleSize: 4 },
+					legendFormatter: legendFormatter,
+					axes: { y: vf1, 
+						y2: vf2, 
+						axisLabelWidth: 100
+					},
+					legend: 'always',//showRangeSelector: true,
+					interactionModel: this.im,
+					showRoller: true//, errorBars: true
+		};
 		var min =new Date(dataseries[0][0]).getTime()-ONEDOTMSAROUND,max=new Date(dataseries[0][0]).getTime()+ONEDOTMSAROUND;
 		if(min<0) min=0;
- 		if(dataseries.length==1) opt.dateWindow=[new Date (min),new Date(max)];
-		
-	 	this.maingraph=new Dygraph(
+		if(dataseries.length==1) opt.dateWindow=[new Date (min),new Date(max)];
+
+		var cvsdataseries=toCSV(dataseries);
+
+		this.maingraph=new Dygraph(
 				geid(this.name),
-				dataseries,
+				cvsdataseries,
 				opt
 		); 
-	  
-	 	this.series0=series0;
+
+		this.series0=series0;
 		this.dataseries=dataseries;
 		this.labels0=labels0;
-		
+
 	};
-	
+
 	getRangeNamesY(name){
 		var seriesnamesy=getPropertySubArray(this.config.series.y,"name");
 		for(var ser in seriesnamesy) {if(seriesnamesy[ser]==name) {seriesnamesy=[name];break;}}
@@ -305,7 +346,7 @@ class LogDygraph {
 		if(seriesnamesy2.length>1) seriesnamesy2=[seriesnamesy2[0]];
 		return seriesnamesy2;
 	}
-	
+
 	getRangeSeries(rangename){
 		// possibly reduce data to one per axis (including the showed data) to improve performance ?
 		var i=0;
@@ -323,7 +364,7 @@ class LogDygraph {
 
 	addRange(rangename, name,color){
 		// add minmax as fake data to force valueRange for rangeselector but add a visual glitch when too few data
-/*		var ind=0;
+		/*		var ind=0;
 		if(this.series0[name].axis=="y2") ind++;;
 		var data=JSON.parse(JSON.stringify(this.data));
 		var lastcell=data[name][data[name].length-1];
@@ -349,7 +390,7 @@ class LogDygraph {
 		labels0.push(name);
 		if(seriesnamesy2) labels0.push(seriesnamesy2[0]);
 		//labels0=labels0.concat(seriesnamesy.concat(seriesnamesy2));
-		
+
 		var height=30, st=geid(rangename).style;
 		if(st && st.height && st.height.substr(st.height.length-2,st.height.length)=="px") height=Number(st.height.substr(0,st.height.length-2));
 		var series0={};
@@ -357,8 +398,8 @@ class LogDygraph {
 		for(var n in seriesnamesy2) {series0[seriesnamesy2]={axis: 'y2'};}		
 		//var series0=JSON.parse(JSON.stringify(this.series0));
 		series0[name].showInRangeSelector = true;
-		
-	//	var range=this.maingraph.yAxisRanges();
+
+		//	var range=this.maingraph.yAxisRanges();
 		var rangegraph1=new Dygraph(
 				geid(rangename),
 				dataseries,
@@ -375,8 +416,8 @@ class LogDygraph {
 					fillGraph:false,
 					series: series0,
 					axes: {
-				//		y:{valueRange: range[0]},	// does not work, no change of range selector
-				//		y2:{valueRange: range[1]},
+						//		y:{valueRange: range[0]},	// does not work, no change of range selector
+						//		y2:{valueRange: range[1]},
 						drawAxis : false,
 						x: {axisLabelFormatter:function(x){return "";}}
 					},
@@ -389,7 +430,7 @@ class LogDygraph {
 					rangeSelectorPlotFillColor: "#FFFFFF"
 				}
 		);
-	//	rangegraph1.updateOptions({valueRange: range[0]});
+		//	rangegraph1.updateOptions({valueRange: range[0]});
 		this.ranges.push(rangegraph1);
 		var all=[];
 		all.push(this.maingraph);
@@ -407,12 +448,12 @@ class LogDygraph {
 		var min=dataseries[0][0].getTime();
 		if(this.maingraph.xAxisRange()[1]>=this.maingraph.xAxisExtremes()[1] &&  // most recent was visible untill now
 				this.maingraph.xAxisRange()[1] < max)	// and it would disappear
-			{
+		{
 			if(this.maingraph.xAxisRange()[0]!=this.maingraph.rawData_[0][0]) min=this.maingraph.xAxisRange()[0]; // follow the data unless the min of view has moved : not sure it is the best design choice
 			opt.dateWindow=[min,max];	//adjust view max stays to max, min stay to min
-			}
+		}
 		// update
- 		this.maingraph.updateOptions( opt,false);
+		this.maingraph.updateOptions( opt,false);
 	}
 
 	updateRangeGraph(rangegraph,r){
@@ -420,32 +461,46 @@ class LogDygraph {
 		var dataseries=this.getRangeSeries(rangename);
 		var opt={ 'file': dataseries } ;
 		// keep now visible
-	 	var max=dataseries[dataseries.length-1][0].getTime();
+		var max=dataseries[dataseries.length-1][0].getTime();
 		if(this.maingraph.xAxisRange()[1]>=this.maingraph.xAxisExtremes()[1] &&  // most recent was visible untill now
 				this.maingraph.xAxisRange()[1] < max)	// and it would disappear 	
 			opt.dateWindow=[this.maingraph.xAxisRange()[0],max];	//adjust view
-	 	// update
+		// update
 		rangegraph.updateOptions( opt);
 	}
-	
+
 	update(data){
 		this.data=data;
 		this.updateMainGraph();
 		for(var r in this.ranges) this.updateRangeGraph(this.ranges[r],r);
-	
+
 //		this.maingraph.xAxisRange();
 //		this.maingraph.xAxisExtremes();
 		//dateWindow:
-	
-/*		var extra=getSeries(data,seriesnamesy);	//should be seriesnamesy
+
+		/*		var extra=getSeries(data,seriesnamesy);	//should be seriesnamesy
 		this.rangegraph1.updateOptions( { 'file': extra } );
 
 		var extra2=getSeries(data,seriesnamesy2);	//should be seriesnamesy2
 		this.rangegraph2.updateOptions( { 'file': extra2 } );
-*/	}
+		 */	}
 };
 
+function toCSV(data){
+	var csv="";
+	for(var i in data){
+		var first=true;
+		for(var j in data[i]){
+			if(first) first=false;
+			else csv+=", ";
+			if(data[i][j]!=null) csv+=data[i][j];
+			//else csv+="-";
 
+		}
+		csv+="\n";
+	}
+	return csv;
+}
 
 function getPropertySubArray(array,property){
 	return array.map(function(item){ 
@@ -454,7 +509,7 @@ function getPropertySubArray(array,property){
 }
 
 function labelformatter(axisunit){ 
-//  this.unit=unit;
+//	this.unit=unit;
 //	this.axesunit=axisunit;
 	this.valueFormatter= function(y) {
 		var str=y.toFixed(2);
@@ -495,16 +550,16 @@ function getSerieByDate(serie, date){
 	}
 	return undefined;
 }
-*/
+ */
 function getSeriesv15(data0,names){
 	var series=[];
 	var i=1;
 	var size=Object.keys(names).length+1;
-	
+
 	var data=data0.slice(0);
 	var fnames=data.shift();
 	var gfd={};
-	
+
 	for(var n in fnames){
 		for(var m in names){
 			if(fnames[n]==names[m]) {gfd[n]=Number.parseInt(m); break;} 
@@ -526,8 +581,8 @@ function getSeriesv15(data0,names){
 		}
 		series.push(gl);
 	}
-	
-	 
+
+
 	return series;
 }
 
@@ -561,7 +616,7 @@ function getSeriesv1(data,names){
 
 	return series;
 }
-*//*
+ *//*
 function getCell(size,n){
 	var cell2=[];
 	for(var j=0;j<size;j++) cell2.push(n);
@@ -698,7 +753,7 @@ function getSeriesoriginalsorted(data,names){
 	series.sort(function(a,b) {return a[0]-b[0];});
 	return series;
 }
-*/
+  */
 /*
  * /*
 		var extra2=getSeries(data,seriesnamesy2);
