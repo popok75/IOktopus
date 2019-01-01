@@ -4,7 +4,7 @@ wifi-password: seeds freedom
 
 server-name: IOktopus-v0.1
 
-log-refreshperiodsec:20					 
+log-refreshperiodsec:120					 
 log-minmemorylimit:16000			 
 log-maxtimepoints:1000	
 
