@@ -30,6 +30,16 @@ public:
 	virtual unsigned int getClassType(){return MultipartStringEventTYPE;}
 };
 
+#define LogRetreiveEventTYPE 5
+class LogRetreiveEvent : public MultipartStringEvent {
+	virtual Event* getCopy(){return new MultipartStringEvent(maxsize,index, str);};
+public:
+	uint64_t timestamp=0;
+	LogRetreiveEvent(uint64_t ts0, unsigned int maxsize0, unsigned int index0=0,GenString str0=""):MultipartStringEvent(maxsize0,index0,str0), timestamp(ts0){maxsize=maxsize0;};
+	virtual unsigned int getClassType(){return LogRetreiveEventTYPE;}
+};
+
+
 
 class CallbackEvent :public Event{
 

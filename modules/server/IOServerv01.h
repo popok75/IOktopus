@@ -111,8 +111,15 @@ public:
 	//		 StringEvent strev=StringEvent();
 	//		 emit("getLogJson",&strev);				// get the data by sync event rather than through getAsJson
 	//		 server.send(200, "application/json",strev.str);
-
-			 if(!MULTIPARTLOG){
+			 std::map<std::string,std::string> args=server.getArguments();
+			 uint64_t ts=0;
+			 for(auto it : args) {
+				 println(GenString()+"Found argument :"+it.first+":"+it.second);
+				 if(it.first==RF("from") && isDigit(it.second)) {
+					 ts=strToUint64(it.second)*1000;
+					 break;}
+			 }
+			 if(!MULTIPARTLOG){	//this part is not functional anymore
 				 // GenString message=myiodata->getAsJson();
 				 // case of sync events
 				 StringEvent strev=StringEvent();
@@ -121,18 +128,16 @@ public:
 				 server.send(200, RF("application/json"),strev.str);	//is the server duplicating the string (no reason)
 
 			 } else {
-				 MultipartStringEvent strev=MultipartStringEvent(2048);
+				 LogRetreiveEvent strev=LogRetreiveEvent(ts,2048);
 				 emit(RF("getLogJson"),&strev);
-			//	 uint32_t ts0=millis();
-			//	 reserveMem();
-			///	 fakeLog(&strev);
+
 				 if(chunked){	// for correct chunked transfer mode must add the size and \n\r : https://en.wikipedia.org/wiki/Chunked_transfer_encoding // or else ERR_INCOMPLETE_CHUNKED_ENCODING
 					 server.setContentLength(CONTENT_LENGTH_UNKNOWN);
 				 } else {
 					 server.setContentLength(strev.totalsize);
 				 }
 				 unsigned long ttsz=strev.str.size();
-				 server.send ( 200, RF("text/html"), strev.str);
+				 server.send (200, RF("text/html"), strev.str);
 			//	 println(GenString()+"IOServerv01::handleRequest : Server sending log "+to_string(strev.index)+" :"+strev.str);
 				 strev.index++;
 

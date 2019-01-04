@@ -223,7 +223,6 @@ class LogDygraph {
 		this.data=data;
 		var dataseries=this.getMainSeries();
 		var yunit="",y2unit="";
-		changeStylesheetRule(document.styleSheets[0], ".dygraph-legend","text-align","left");
 		if(config.axis){
 			if(config.axis.y2 && config.axis.y2.color) changeStylesheetRule(document.styleSheets[0], ".dygraph-axis-label-y2","color",config.axis.y2.color);
 			if(config.axis.y && config.axis.y.color) changeStylesheetRule(document.styleSheets[0], ".dygraph-axis-label-y","color",config.axis.y.color);
@@ -231,7 +230,10 @@ class LogDygraph {
 			if(config.axis.y && config.axis.y.unit) yunit=config.axis.y.unit;
 		}
 		//	changeStylesheetRule(document.styleSheets[0], ".dygraph-legend","text-align","right");
+		changeStylesheetRule(document.styleSheets[0], ".dygraph-legend","text-align","left");
 		changeStylesheetRule(document.styleSheets[0], ".dygraph-legend","margin-left","80px");
+//		changeStylesheetRule(document.styleSheets[0], ".dygraph-legend","z-index","99 !important");
+	//	background: transparent !important;
 		//	changeStylesheetRule(document.styleSheets[0], ".dygraph-legend","width","200px");
 
 		var vunit="",v2unit=""
@@ -302,7 +304,7 @@ class LogDygraph {
 				ylabel: config.axis.y.label | "", y2label: config.axis.y2.label | "",
 				labelsSeparateLines: true,
 				labelsShowZeroValues: false,
-				highlightSeriesBackgroundAlpha : 0.75,
+				highlightSeriesBackgroundAlpha : 0.8,
 				highlightSeriesOpts: { 
 					strokeWidth: 2,
 					strokeBorderWidth: 1,
@@ -568,8 +570,8 @@ function getSeriesv15(data0,names){
 	var firstts=0, sz=names.length;
 	for (var dl in data){
 		var l=data[dl];
-		if(!firstts) firstts=l[0];
-		else l[0]+=firstts;
+	//	if(!firstts) firstts=l[0];
+	//	else l[0]+=firstts;
 		l[0]=l[0]*MILLIFACTOR;
 		var gl=Array(sz+1);
 		gl.fill(null);

@@ -15,9 +15,8 @@ class RemoteModel extends EventEmitter {
 		console.log("RemoteModel");		
 	}	
 	
-	loadEmit(url,eventname,obj,objts){
+	loadEmit(url,eventname,obj,objts,ffin){
 		loadremote(url,function(t,xhttp){
-			
 			this.serverinfo.status="online";
 			var boottime=xhttp.getResponseHeader("x-BootTime");
 			if(boottime) {
@@ -41,14 +40,19 @@ class RemoteModel extends EventEmitter {
 			}
 			this.serverinfo[eventname]="ok";
 			this.emit("serverinfo","");
-			this[objts]=new Date().getTime();
+			var b=true;
+			if(obj=="log"){
+				b=this.mergeLog(tjp);
+			} else{
+				this[objts]=new Date().getTime();
+				this[obj]=tjp;				
+			}
 //			console.log("received "+eventname+":"+t);
-			this[obj]=tjp;
 			//debug display
 //			geid('userinterface').innerHTML=t;
 			//console.log(eventname+":"+t);
 			//emit
-			this.emit(eventname,"");
+			if(b) this.emit(eventname,"");
 		}.bind(this),
 		function(xhttp){
 			//if(!this.serverinfo.boottime) 
@@ -56,20 +60,53 @@ class RemoteModel extends EventEmitter {
 			}.bind(this));
 	};
 	
+	mergeLog(data){
+		if(!data || data.length==0 || data[0].length==0) {console.log("Log data table received from /log/ empty.");return false;}
+		this.logts=new Date().getTime();
+		this.prepareData(data);
+		if(!this.log) {this.log=data;return true;}
+
+		//merge names firs
+		if(isNaN(parseInt(data[0][0]))){
+			this.log[0]=[...new Set([...this.log[0], ...data[0][0]])];
+		}
+		
+		for (var i in data) {
+			if(isNaN(parseInt(data[i][0]))) continue;
+			if(data[i][0]<this.log[this.log.length-1]) continue;
+			this.log.push(data[i]);
+		}
+		return true;    
+	};
+	
+	prepareData(data){
+		var ts0=0;
+		for(var i in data){
+			if(isNaN(parseInt(data[i][0]))) continue;
+			if(ts0==0) {ts0=data[i][0];continue;}
+			data[i][0]=ts0+data[i][0];
+		}
+	}
+	
 	load(){
 		this.loadEmit(this.espip+"/data","load","data","datats");
 	};
 	
 	reload(){
+		
 		this.loadEmit(this.espip+"/data","reload","data","datats");
 	};
 	
 	loadlog(){
 		this.loadEmit(this.espip+"/log","logload","log","logts");
 	};
-	
+	getLastLogTS(){
+		return this.log[this.log.length-1][0];
+	}
 	reloadlog(){
-		this.loadEmit(this.espip+"/log","logreload","log","logts");
+		var url=this.espip+"/log";
+		if(this.log && this.log.length) url+="?from="+this.getLastLogTS();
+		this.loadEmit(url,"logreload","log","logts");
 	};
 	 
 	

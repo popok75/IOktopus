@@ -139,6 +139,18 @@ public:
 	//	return false;
 	}
 
+	unsigned int getIndexFromTS(uint64_t ts){
+		ts=ts/MILLISFACTOR;
+//		for(unsigned int j=0;j<timestamps.size();j++) if(ts<timestamps[j].ts) return j;
+//		return timestamps.size();
+		for(unsigned int j=timestamps.size();j>0;j--) {
+			uint64_t ts2=timestamps[j-1].ts;
+			if(ts>=timestamps[j-1].ts) return j;	//ts not included
+		}
+		return 0;//timestamps.size();
+
+	}
+
 	Channel *getChannelFromColumn(ColumnType col){
 		for(auto c:channels) if((*c.itval)->column==col) return *c.itval;
 		return 0;

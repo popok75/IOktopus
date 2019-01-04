@@ -128,14 +128,19 @@ class IOLoggerv016: public IOLoggerGen
 			}*/
 		}
 		if(command==RF(GETJSONLOGEVENT)){
-			MultipartStringEvent *strev=0;
-			if(event->getClassType()==MultipartStringEventTYPE) strev=(MultipartStringEvent*)(event);
+			LogRetreiveEvent *strev=0;
+			if(event->getClassType()==LogRetreiveEventTYPE) strev=(LogRetreiveEvent*)(event);
 
 			if(!strev) return false;
 			if(strev->index==0 && logdata.isLocked()) return false;	// cant make a new during lock
 			strev->str.erase();
+			if(strev->timestamp) {
+				unsigned int i=logdata.getIndexFromTS(strev->timestamp);//savedindex should be controlled only from writeJson funciton, not good to hack it as argument of call
+				if(i==logdata.size()) {strev->str=RF("[]");strev->totalsize=2;return true;}//nothing new
+				savedindex=i;
+			}
 			if(!MULTIPARTLOG){
-				this->writeJson(strev->str);
+				this->writeJson(strev->str,0);
 			} else {
 				logdata.setLocked(true);
 				strev->tobecontinued=this->writeJson(strev->str,strev->maxsize);
