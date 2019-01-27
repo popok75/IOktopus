@@ -7,7 +7,7 @@ IOktopus is a sensor logger and controller for ESP8266. Current version runs a c
 - allows to monitor sensor values from your browser (supported sensors so far : DHT22, DS18B20, HTU21, SHT15)
 - provides a browser alarm on each sensor value
 - keeps and show max min values 
-- allows to explore sensors history in a zoomable graph (using dygraphs js), saved values in board memory (up to 1000items) or flash (up to 60000 items)
+- allows to explore sensors history in a zoomable graph (using dygraphs js), saved values in board memory (up to 1000 time point) or flash (up to 60000 time point)
 - display board state (responsiveness, last boot)
 	
 Full version of IOktopus will additionally allow to :
