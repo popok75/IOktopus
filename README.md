@@ -1,6 +1,8 @@
 # IOktopus	
 ## website/blog : https://esp8266life.wordpress.com/ 
 ## Features
+![hello](ioktopus-screenshot5.jpg)
+
 IOktopus is a sensor logger and controller for ESP8266. Current version runs a c++ server on board and provide a javascript client that :
 - allows to monitor sensor values from your browser (supported sensors are : DHT22,DS18B20,HTU21,SHT15)
 - provides a browser alarm on each sensor value
