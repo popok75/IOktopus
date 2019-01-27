@@ -72,8 +72,7 @@ public:
 */
 
 int main(int argc, char* argv[])
-{
-	std::cout << "IOktopusx86 v0.03 "<<std::endl;
+{	std::cout << "IOktopusx86 v0.03 "<<std::endl;
 /*
 	const int numItems = 100;
 	  std::cout << "\nCreating a RWTValDlist with a default allocator"

@@ -124,7 +124,7 @@ public:
 	virtual Iterator end(){return Iterator();};
 
 	virtual bool set(GenString key,GenString value){return false;} //return true if modified (key inexistant or with different value)
-
+	virtual bool setReplace(GenString key,GenString value){return false;} // replace the key is existant
 
 	void initFromBraced( std::initializer_list<std::initializer_list<GenString>> init_list){			//	std::map<GenString,GenString> mapval=map;
 		for(std::initializer_list<GenString> il : init_list){
@@ -351,7 +351,18 @@ public:
 		return _set(key,value);
 	};
 
+	bool setReplace(GenString key,GenString value){
+		if(has(key)) {
+			GenString v=get(key);
+			return replace(key,v,key,value);
+		}
+		else return set(key,value);
+	}
 	virtual bool empty(){return (keys==0);}
+
+	bool erase(GenString key){
+		return SSMap::erase(key);
+	}
 
 	Iterator begin(){
 		//		println(GenString()+"GenMapStl : begin s:"+to_string(stlmap.size()));

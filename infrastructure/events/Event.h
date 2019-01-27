@@ -30,6 +30,7 @@ public:
 	virtual unsigned int getClassType(){return MultipartStringEventTYPE;}
 };
 
+/*
 #define LogRetreiveEventTYPE 5
 class LogRetreiveEvent : public MultipartStringEvent {
 	virtual Event* getCopy(){return new MultipartStringEvent(maxsize,index, str);};
@@ -38,7 +39,7 @@ public:
 	LogRetreiveEvent(uint64_t ts0, unsigned int maxsize0, unsigned int index0=0,GenString str0=""):MultipartStringEvent(maxsize0,index0,str0), timestamp(ts0){maxsize=maxsize0;};
 	virtual unsigned int getClassType(){return LogRetreiveEventTYPE;}
 };
-
+*/
 
 
 class CallbackEvent :public Event{
@@ -48,7 +49,7 @@ class CallbackEvent :public Event{
 };
 
 #include "../../datastruct/GenMap.h"
-
+/*
 #define NamedStringMapEventTYPE 3
 class NamedStringMapEvent : public Event{
 public:
@@ -60,7 +61,7 @@ public:
 	virtual Event* getCopy(){return new NamedStringMapEvent(ename,&values);};
 	virtual unsigned int getClassType(){return NamedStringMapEventTYPE;}
 };
-
+*/
 #define StringMapEventTYPE 2
 class StringMapEvent : public Event{
 public:
@@ -72,6 +73,16 @@ public:
 	virtual unsigned int getClassType(){return StringMapEventTYPE;}
 };
 
+#define NamedStringMapEventTYPE 3
+class NamedStringMapEvent : public StringMapEvent{
+public:
+	std::string ename;
+	NamedStringMapEvent(std::string ename0,GenMap *src) : StringMapEvent(src), ename(ename0){};
+	NamedStringMapEvent(std::string ename0,std::initializer_list<std::initializer_list<GenString>> src): StringMapEvent(src), ename(ename0) {};
+	NamedStringMapEvent(std::string ename0,std::multimap<GenString,GenString> *src):  StringMapEvent(src), ename(ename0) {};
+	virtual Event* getCopy(){return new NamedStringMapEvent(ename,&values);};
+	virtual unsigned int getClassType(){return NamedStringMapEventTYPE;}
+};
 
 
 #endif

@@ -128,25 +128,33 @@ class IOLoggerv016: public IOLoggerGen
 			}*/
 		}
 		if(command==RF(GETJSONLOGEVENT)){
-			LogRetreiveEvent *strev=0;
-			if(event->getClassType()==LogRetreiveEventTYPE) strev=(LogRetreiveEvent*)(event);
+			NamedStringMapEvent *strev=0;
+			if(event->getClassType()==NamedStringMapEventTYPE) strev=(NamedStringMapEvent*)(event);
 
+			unsigned int maxsize=0;
+			GenString max=strev->values.get(RF("max"));
+			if(isDigit(max)) maxsize=strToUint64(max);
+			uint64_t timestamp=0;
+			GenString ts=strev->values.get(RF("ts"));
+			if(isDigit(ts)) timestamp=strToUint64(ts);
+
+			GenString cont=RF("tobecontinued");
+			bool tobecontinued=strev->values.has(cont);
 			if(!strev) return false;
-			if(strev->index==0 && logdata.isLocked()) return false;	// cant make a new during lock
-			strev->str.erase();
-			if(strev->timestamp) {
-				unsigned int i=logdata.getIndexFromTS(strev->timestamp);//savedindex should be controlled only from writeJson funciton, not good to hack it as argument of call
-				if(i==logdata.size()) {strev->str=RF("[]");strev->totalsize=2;return true;}//nothing new
+			if(!tobecontinued && logdata.isLocked()) return false;	// cant make a new during lock
+			strev->ename.erase();
+			if(timestamp) {
+				unsigned int i=logdata.getIndexFromTS(timestamp);//savedindex should be controlled only from writeJson funciton, not good to hack it as argument of call
+				if(i==logdata.size()) {strev->ename=RF("[]");strev->values.set("total","2");return true;}//nothing new
 				savedindex=i;
 			}
-			if(!MULTIPARTLOG){
-				this->writeJson(strev->str,0);
-			} else {
-				logdata.setLocked(true);
-				strev->tobecontinued=this->writeJson(strev->str,strev->maxsize);
-				logdata.setLocked(strev->tobecontinued);
-				if(!strev->tobecontinued) println(GenString()+RF("IOLoggerv016::notify post : total dots :")+to_string(logdata.size()));
-			}
+			logdata.setLocked(true);
+
+			tobecontinued=this->writeJson(strev->ename,maxsize);
+			if(tobecontinued) strev->values.set(cont,RF("1"));
+			else strev->values.erase(cont);
+			logdata.setLocked(tobecontinued);
+			if(!tobecontinued) println(GenString()+RF("IOLoggerv016::notify post : total dots :")+to_string(logdata.size()));
 		//	println(GenString()+RF("IOLoggerv016::notify json:")+(strev->str));
 #ifdef ESP8266
 			//				print("IOLoggerv016::notify post : free memory :");	println(ESP.getFreeHeap(),DEC);
@@ -196,26 +204,31 @@ class IOLoggerv016: public IOLoggerGen
 		GenString json;
 
 		if(!savedindexset){
-			json+=RF("[[");
+			json+=RF("[[\"newstream\"],{");
 			bool first=true;
 			auto names=logdata.getColumnNames();
 			for(unsigned int i=0;i<names.size();i++){
 				GenString name=names[i];
 				if(!first) json+=RF(",");
 				first=false;
-				json+=RF("\"")+name+RF("\"");
+				json+=RF("\"")+name+RF("\":")+to_string(i);
 			}
-			json+=RF("]");
+			json+=RF("}");
 		}
+
 
 		unsigned int dots=logdata.size();
 //		println(GenString()+RF("IOLoggerv016::writeJson dots:")+to_string(logdata.size()));
 		for(unsigned int i=savedindex;i<dots;i++){
 //			println(GenString()+RF("IOLoggerv016::writeJson loop json:")+json+" json2:"+json2);
-			json+=RF(",[");
 			IOLoggerMemStore::FullCell fc=logdata.getIndex(i);
 			uint64_t ts=fc.ts;
-			if(!savedfirstts) savedfirstts=ts; else ts-=savedfirstts;	//
+			if(!savedfirstts) {
+				savedfirstts=ts;
+				json+=RF(",{\"sync\":")+to_string(ts)+'}';
+			}
+			ts-=savedfirstts;	//
+			json+=RF(",[");
 			json+=to_string(ts);
 			for(unsigned int j=0;j<fc.cells.size();j++){
 				unsigned int col=fc.cells[j].column;

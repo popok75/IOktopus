@@ -46,7 +46,7 @@ public:
 	void sendContent( std::string header);
 	void sendHeader( std::string header, std::string value);
 	void send(int status, std::string type, std::string message);;
-	size_t streamFile(std::string filename, std::string contentType);	// send a file to current req
+	size_t streamFile(std::string filename, std::string contentType,unsigned long start=0,unsigned long stop=0);	// send a file to current req
 
 
 	void handleClient();	// call mono yield function

@@ -187,7 +187,7 @@ public:
 
 		unsigned int i=data.find(smcinterpair+key+smcintrapair+value+smcinterpair);
 		if(i<data.size()){
-			data.replace(data.begin()+i,data.begin()+i+key.size()+value.size()+2,nkey+smcintrapair+nvalue+smcinterpair);
+			data.replace(data.begin()+i,data.begin()+i+key.size()+value.size()+3,smcinterpair+nkey+smcintrapair+nvalue+smcinterpair);
 			return true;
 		}
 		else return false;

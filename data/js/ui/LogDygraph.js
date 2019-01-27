@@ -8,9 +8,13 @@
 
 var MILLIFACTOR=1000;	//ts in seconds not in millis
 var ONEDOTMSAROUND=30000;
+var USECSV=false;
+var USERANGESUBSET=true;
+
 
 class LogGraphGroup {	//interface the data and the graphs
 	constructor(name,component,nodes){
+
 		this.name=name;
 		this.graphs=[];
 		this.component=component;
@@ -82,7 +86,7 @@ class LogGraphGroup {	//interface the data and the graphs
 	init(rawdata,nodes){
 		var graphid=0;
 		var graph=new LogDygraph(this.name+graphid);// who create the canvas tag ?
-		var data=this. prepareData(rawdata);
+		var data=rawdata;//this. prepareData(rawdata);
 		graph.init(data,this.config);
 		graphid++;
 		// create a range per variable
@@ -98,8 +102,8 @@ class LogGraphGroup {	//interface the data and the graphs
 	};
 
 	update(rawdata){
-		var data=this. prepareData(rawdata);
-		this.graph.update(data);
+		//var data=this. prepareData(rawdata);
+		this.graph.update(rawdata);
 	};
 
 	createCanvas(canvasname){
@@ -117,19 +121,7 @@ class LogGraphGroup {	//interface the data and the graphs
 
 	}
 
-	prepareData(rawdata){
-		var seriesnamesy=getPropertySubArray(this.config.series.y,"name");
-		var seriesnamesy2=getPropertySubArray(this.config.series.y2,"name");
-		if(!Array.isArray(rawdata)){
-			var series=getSeriesv1(rawdata,seriesnamesy.concat(seriesnamesy2));
-			return series;			
-		} else {
-			var series=getSeriesv15(rawdata,seriesnamesy.concat(seriesnamesy2));
-			return series;
-		}
 
-		return data;
-	}
 }
 /*	var config={
 series:{
@@ -210,10 +202,16 @@ function hexToRgb(hex) {
 
 
 class LogDygraph {
-	constructor(name){this.name=name;this.ranges=[];}
+	constructor(name){
+		this.name=name;
+		this.ranges=[];
+		this.usecsv=USECSV;
+		this.userangesubset=USERANGESUBSET;
+	}
 
 
 	getMainSeries(){
+		if(this.usecvs)return toCSV( this.data);
 		return this.data;
 	}
 
@@ -223,7 +221,6 @@ class LogDygraph {
 		this.data=data;
 		var dataseries=this.getMainSeries();
 		var yunit="",y2unit="";
-		changeStylesheetRule(document.styleSheets[0], ".dygraph-legend","text-align","left");
 		if(config.axis){
 			if(config.axis.y2 && config.axis.y2.color) changeStylesheetRule(document.styleSheets[0], ".dygraph-axis-label-y2","color",config.axis.y2.color);
 			if(config.axis.y && config.axis.y.color) changeStylesheetRule(document.styleSheets[0], ".dygraph-axis-label-y","color",config.axis.y.color);
@@ -231,7 +228,10 @@ class LogDygraph {
 			if(config.axis.y && config.axis.y.unit) yunit=config.axis.y.unit;
 		}
 		//	changeStylesheetRule(document.styleSheets[0], ".dygraph-legend","text-align","right");
+		changeStylesheetRule(document.styleSheets[0], ".dygraph-legend","text-align","left");
 		changeStylesheetRule(document.styleSheets[0], ".dygraph-legend","margin-left","80px");
+//		changeStylesheetRule(document.styleSheets[0], ".dygraph-legend","z-index","99 !important");
+		//	background: transparent !important;
 		//	changeStylesheetRule(document.styleSheets[0], ".dygraph-legend","width","200px");
 
 		var vunit="",v2unit=""
@@ -289,6 +289,12 @@ class LogDygraph {
 		}
 
 		var opt={
+				underlayCallback: (context) => {
+					context.save();
+				},
+				drawCallback: (dygraph) => {
+					dygraph.canvas_ctx_.restore();
+				},
 				labels: labels0,
 				animatedZooms: false,
 				//visibility: [false, false,false,false,false, false,false,false],
@@ -302,7 +308,7 @@ class LogDygraph {
 				ylabel: config.axis.y.label | "", y2label: config.axis.y2.label | "",
 				labelsSeparateLines: true,
 				labelsShowZeroValues: false,
-				highlightSeriesBackgroundAlpha : 0.75,
+				highlightSeriesBackgroundAlpha : 0.8,
 				highlightSeriesOpts: { 
 					strokeWidth: 2,
 					strokeBorderWidth: 1,
@@ -320,16 +326,15 @@ class LogDygraph {
 		if(min<0) min=0;
 		if(dataseries.length==1) opt.dateWindow=[new Date (min),new Date(max)];
 
-		var cvsdataseries=toCSV(dataseries);
+		 
 
 		this.maingraph=new Dygraph(
 				geid(this.name),
-				cvsdataseries,
+				dataseries,
 				opt
 		); 
 
 		this.series0=series0;
-		this.dataseries=dataseries;
 		this.labels0=labels0;
 
 	};
@@ -348,6 +353,7 @@ class LogDygraph {
 	}
 
 	getRangeSeries(rangename){
+		if(!this.userangesubset) return this.getMainSeries();
 		// possibly reduce data to one per axis (including the showed data) to improve performance ?
 		var i=0;
 		for(;i<this.labels0.length;i++) if(this.labels0[i]==rangename) break;
@@ -362,51 +368,46 @@ class LogDygraph {
 		return series;
 	}
 
+	///////////////////
+	getRangeLabels(name, seriesnamesy2){
+		if(this.userangesubset){
+			var labels0=['Date'];
+			labels0.push(name);
+			if(seriesnamesy2) labels0.push(seriesnamesy2[0]);
+			return labels0;
+
+		} else return this.labels0;
+	}
+	getRangeSeriesObj(name,seriesnamesy, seriesnamesy2){ 
+		var series0={};
+		for(var n in seriesnamesy) {series0[seriesnamesy]={axis: 'y'};}
+		for(var n in seriesnamesy2) {series0[seriesnamesy2]={axis: 'y2'};}	
+		series0[name].showInRangeSelector = true;
+		return series0;
+	}
+
+	////////////////////////////////
 	addRange(rangename, name,color){
-		// add minmax as fake data to force valueRange for rangeselector but add a visual glitch when too few data
-		/*		var ind=0;
-		if(this.series0[name].axis=="y2") ind++;;
-		var data=JSON.parse(JSON.stringify(this.data));
-		var lastcell=data[name][data[name].length-1];
-		var newcell=JSON.parse(JSON.stringify(lastcell));
-		newcell[0]++;
-		newcell[1]=this.maingraph.yAxisRanges()[ind][1];
-		//	data[name].push(newcell);
-		var newcell2=JSON.parse(JSON.stringify(lastcell));
-		newcell2[0]+=2;
-		newcell2[1]=this.maingraph.yAxisRanges()[ind][0];
-		//	data[name].push(newcell2);
-		// regenerate data
-		var seriesnamesy=getPropertySubArray(this.config.series.y,"name");
-		var seriesnamesy2=getPropertySubArray(this.config.series.y2,"name");
-		var dataseries=getSeries(data,seriesnamesy.concat(seriesnamesy2));*/
+		// add minmax as fake data to force valueRange for rangeselector but add a visual glitch when too few data, is it a todo ?
 
 		var dataseries=this.getRangeSeries(name);
 		var seriesnamesy=this.getRangeNamesY(name);
 		var seriesnamesy2=this.getRangeNamesY2(name);
 		var config=this.config;
 		var rangeid=this.ranges.length+1;
-		var labels0=['Date'];
-		labels0.push(name);
-		if(seriesnamesy2) labels0.push(seriesnamesy2[0]);
-		//labels0=labels0.concat(seriesnamesy.concat(seriesnamesy2));
+		var labels0=this.getRangeLabels(name, seriesnamesy2);
+		var series0=this.getRangeSeriesObj(name,seriesnamesy, seriesnamesy2);
 
 		var height=30, st=geid(rangename).style;
 		if(st && st.height && st.height.substr(st.height.length-2,st.height.length)=="px") height=Number(st.height.substr(0,st.height.length-2));
-		var series0={};
-		for(var n in seriesnamesy) {series0[seriesnamesy]={axis: 'y'};}
-		for(var n in seriesnamesy2) {series0[seriesnamesy2]={axis: 'y2'};}		
-		//var series0=JSON.parse(JSON.stringify(this.series0));
-		series0[name].showInRangeSelector = true;
 
-		//	var range=this.maingraph.yAxisRanges();
+
+
 		var rangegraph1=new Dygraph(
 				geid(rangename),
 				dataseries,
 				{
 					xAxisHeight: height,
-					//				labels: ['Date'].concat(config.series.y2),
-					//				series: config.series.y2,
 					visibility: [false, false,false,false,false, false,false,false],
 					plotter:function(e){},
 					animatedZooms: false,
@@ -430,28 +431,47 @@ class LogDygraph {
 					rangeSelectorPlotFillColor: "#FFFFFF"
 				}
 		);
-		//	rangegraph1.updateOptions({valueRange: range[0]});
+
 		this.ranges.push(rangegraph1);
 		var all=[];
 		all.push(this.maingraph);
 		for(var r in this.ranges) all.push(this.ranges[r]);
 		if(all.length>1) Dygraph.synchronize(all, {selection: false,zoom: true,range: false});
-		//	Dygraph.synchronize(this.maingraph, this.rangegraph1, this.rangegraph2, {selection: false,zoom: true,range: false});
+
 	}
 
 
 	updateMainGraph(){
-		var dataseries=this.data;//this.getMainSeries();
+		var dataseries=this.getMainSeries();
 		var opt={ 'file': dataseries } ;
 		// keep now visible
 		var max=dataseries[dataseries.length-1][0].getTime();
 		var min=dataseries[0][0].getTime();
+		var recentermin=false,recentermax=false;
 		if(this.maingraph.xAxisRange()[1]>=this.maingraph.xAxisExtremes()[1] &&  // most recent was visible untill now
-				this.maingraph.xAxisRange()[1] < max)	// and it would disappear
+				this.maingraph.xAxisRange()[1] < max)	// and the new most recent would be out of view
+					recentermax=true;
+		if(this.maingraph.xAxisRange()[0]<=this.maingraph.xAxisExtremes()[0] && // oldest data was visible untill now, 
+				this.maingraph.xAxisRange()[0] > min)	// and it woud be out of view
+					recentermin=true;
+		if(recentermin || recentermax){
+			if(!recentermin && this.maingraph.xAxisRange()[0]!=this.maingraph.rawData_[0][0]) min=this.maingraph.xAxisRange()[0];
+			if(!recentermax && this.maingraph.xAxisRange()[1]!=this.maingraph.rawData_[this.maingraph.rawData_.length-1][0]) max=this.maingraph.xAxisRange()[1];
+			opt.dateWindow=[min,max];
+		}
+	/*	{
+			if(this.maingraph.xAxisRange()[0]!=this.maingraph.rawData_[0][0]) min=this.maingraph.xAxisRange()[0]; // follow the data unless the min of view has moved : not sure it is the best design choice
+			opt.dateWindow=[min,max];	//adjust view max stays to max, min stay to min
+		}
+		if(this.maingraph.xAxisRange()[0]<=this.maingraph.xAxisExtremes()[0] && // oldest data was visible untill now, 
+				this.maingraph.xAxisRange()[0] > min)	// and it woud be out of view
 		{
 			if(this.maingraph.xAxisRange()[0]!=this.maingraph.rawData_[0][0]) min=this.maingraph.xAxisRange()[0]; // follow the data unless the min of view has moved : not sure it is the best design choice
 			opt.dateWindow=[min,max];	//adjust view max stays to max, min stay to min
 		}
+		*/
+		
+		
 		// update
 		this.maingraph.updateOptions( opt,false);
 	}
@@ -462,9 +482,12 @@ class LogDygraph {
 		var opt={ 'file': dataseries } ;
 		// keep now visible
 		var max=dataseries[dataseries.length-1][0].getTime();
+		/*
 		if(this.maingraph.xAxisRange()[1]>=this.maingraph.xAxisExtremes()[1] &&  // most recent was visible untill now
 				this.maingraph.xAxisRange()[1] < max)	// and it would disappear 	
 			opt.dateWindow=[this.maingraph.xAxisRange()[0],max];	//adjust view
+			*/
+		opt.dateWindow=[this.maingraph.xAxisRange()[0],this.maingraph.xAxisRange()[1]];
 		// update
 		rangegraph.updateOptions( opt);
 	}
@@ -551,40 +574,9 @@ function getSerieByDate(serie, date){
 	return undefined;
 }
  */
-function getSeriesv15(data0,names){
-	var series=[];
-	var i=1;
-	var size=Object.keys(names).length+1;
-
-	var data=data0.slice(0);
-	var fnames=data.shift();
-	var gfd={};
-
-	for(var n in fnames){
-		for(var m in names){
-			if(fnames[n]==names[m]) {gfd[n]=Number.parseInt(m); break;} 
-		}
-	}
-	var firstts=0, sz=names.length;
-	for (var dl in data){
-		var l=data[dl];
-		if(!firstts) firstts=l[0];
-		else l[0]+=firstts;
-		l[0]=l[0]*MILLIFACTOR;
-		var gl=Array(sz+1);
-		gl.fill(null);
-		gl[0]=new Date(Number.parseInt(l[0]));
-		for(var i=1;i<l.length;i+=2){
-			var nc=gfd[l[i]]+1;
-			var nv=Number.parseFloat(l[i+1]);
-			gl[nc]=nv;
-		}
-		series.push(gl);
-	}
 
 
-	return series;
-}
+
 
 function getSubSeries(data,column){
 	var series=[];

@@ -144,7 +144,7 @@ public:
 //		for(unsigned int j=0;j<timestamps.size();j++) if(ts<timestamps[j].ts) return j;
 //		return timestamps.size();
 		for(unsigned int j=timestamps.size();j>0;j--) {
-			uint64_t ts2=timestamps[j-1].ts;
+			//suint64_t ts2=timestamps[j-1].ts;
 			if(ts>=timestamps[j-1].ts) return j;	//ts not included
 		}
 		return 0;//timestamps.size();

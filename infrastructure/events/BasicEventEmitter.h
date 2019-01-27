@@ -53,6 +53,7 @@ bool BasicEventEmitter::emit(GenString ename, Event*event){//sync emit,
 	std::vector<Subscription> vect= listeners.getAll(ename);
 	for(Subscription er:vect){
 		if(er.listener){er.listener->notify(ename,event);b=true;}	//remove once
+
 	}
 	return b;
 };

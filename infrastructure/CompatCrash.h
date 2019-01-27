@@ -26,7 +26,7 @@ class CurCrashSaverESP8266{
 	public:
 	void clear(){
 #ifdef ESPSAVECRASH_LIB
-		SaveCrashSpiffs.clearFile();
+		SaveCrashSpiffs.clearFile();	// could rewrite with a small message "IOktopus CrashDump traces will be following"
 #endif
 	};
 	std::string print(){

@@ -7,6 +7,7 @@
 #undef FTEMPLATE
 #define FTEMPLATE ".irom.text.curwebserver"
 
+#define CHUNKSIZE 2048
 
 class CurWebServerEsp8266 {
 public:
@@ -31,19 +32,57 @@ public:
 	void send(int status, std::string type, std::string message){server.send(status, type.c_str(), message.c_str());};
 	void sendContent(std::string message){server.sendContent(message.c_str());};
 	void setContentLength(const size_t contentLength){server.setContentLength(contentLength);};
-	size_t streamFile(std::string path, std::string contentType){
+
+	size_t streamFile(std::string path, std::string contentType,unsigned long start=0,unsigned long stop=0){
 		if(CURFS.exists(path)) {
 			File file = SPIFFS.open(path.c_str(), RF("r"));
 			size_t sent =0;
 			if(file){
-				sent=  server.streamFile(file, contentType.c_str());
-				println(std::string()+RF("sent ")+to_string(sent));
+				println(std::string()+RF("CurWebServerEsp8266::streamFile: sending ")+to_string(start)+" - "+to_string(stop)+", file size: "+to_string(file.size()));
+				if(start>file.size()) {file.close();return 0;}
+				if(start>0 || (stop>0 && stop<file.size())) sent =streamFilePart(file,contentType,start,stop);
+				else sent=  server.streamFile(file, contentType.c_str());
+				println(std::string()+RF("CurWebServerEsp8266::streamFile: sent ")+to_string(sent));
 				file.close();
 			}
 			return sent;
-		}
+		} else println(std::string()+RF("CurWebServerEsp8266::streamFile: path not found :")+path);
 		return 0;
 	};
+
+	unsigned int streamFilePart(File file, std::string contentType,unsigned long start,unsigned long stop) {
+		println(std::string()+RF("CurWebServerEsp8266::streamFilePart: sending ")+to_string(start)+" - "+to_string(stop));
+		println(std::string()+RF("CurWebServerEsp8266::streamFilePart: content type ")+contentType);
+		if(!stop) stop=file.size();
+
+		int n=CHUNKSIZE;
+		unsigned int sent=0,sentall=0;
+		char* buff=(char *) malloc(n);
+		String nope="";
+//		server.send(200, contentType.c_str(), "");
+		server.sendContent(String()+RF("HTTP/1.1 200 OK\r\nContent-Type:")+contentType.c_str()+RF("\r\n\r\n")); //send headers
+		file.seek(start, SeekSet);
+		while (file.position()<stop)
+		{
+			Serial.println("reading");
+			unsigned int nn=n;
+			if((sentall+nn)>stop) nn=stop-sentall;
+			sent= file.readBytes(buff, nn);
+			sentall+=sent;
+
+			server.sendContent_P(buff,sent);
+
+			yield();
+		}
+		free(buff);
+
+		file.close();
+		return sentall;
+	}
+
+
+
+
 	std::string uri(){return std::string(server.uri().c_str());};
 	std::map<std::string,std::string> getArguments(){
 		std::map<std::string,std::string> ret;

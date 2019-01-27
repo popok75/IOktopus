@@ -28,6 +28,13 @@ std::string replaceAll(std::string src, std::string pattern,std::string newval){
 	return src;
 }
 
+bool endsWith(std::string &fullString, std::string &ending) {
+	if (fullString.length() >= ending.length()) {
+		return (0 == fullString.compare (fullString.length() - ending.length(), ending.length(), ending));
+	} else
+		return false;
+};
+
 bool endsWith(std::string const &fullString, std::string const &ending) {
 	if (fullString.length() >= ending.length()) {
 		return (0 == fullString.compare (fullString.length() - ending.length(), ending.length(), ending));

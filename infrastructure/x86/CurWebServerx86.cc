@@ -169,7 +169,7 @@ bool endsWith2(std::string const &fullString, std::string const &ending) {
 };
 
 
-size_t CurWebServerx86::streamFile(std::string filename, std::string contentType){
+size_t CurWebServerx86::streamFile(std::string filename, std::string contentType, unsigned long start,unsigned long stop){
 	std::string diskpath =  programpath, path=filename;
 	path=cppreplaceAll(path,"/","\\");
 	if(path.substr(0,1)=="\\") path=path.substr(1,path.size());
@@ -180,28 +180,31 @@ size_t CurWebServerx86::streamFile(std::string filename, std::string contentType
 
 	std::ifstream myfile(diskpath, std::ios::in|std::ios::binary|std::ios::ate);
 	std::size_t size = 0;
+
 	if (myfile.is_open())
 	{
 		char* oData = 0;
 		size = myfile.tellg();
-		myfile.seekg(0, std::ios::beg);
-		oData = new char[size];
-		myfile.read(oData, size);
+		myfile.seekg(start, std::ios::beg);
+		unsigned int buffsize=size-start;
+		if(stop>0 && stop<size) buffsize=stop-start;
+		oData = new char[buffsize];
+		myfile.read(oData, buffsize);
 		//	std::cout << "red:"<< red <<std::endl;;
 		//oData[size] = '\0';
-		std::cout << "CurWebServerx86::streamFile Loaded to send bytes "<< size << " from file " << diskpath << std::endl;
-		std::string mess="HTTP/1.1 200 OK\r\nContent-Length: "+std::to_string(size);
+		std::cout << "CurWebServerx86::streamFile Loaded to send bytes "<< buffsize << " from file " << diskpath << "["<<start<<"-"<<(start+buffsize)<<"]"<<std::endl;
+		std::string mess="HTTP/1.1 200 OK\r\nContent-Length: "+std::to_string(buffsize);
 		if(!contentType.empty()) mess+="\r\nContent-Type: "+contentType;
 		if(!lastreq->req->xtraheader.empty()) mess+="\r\n"+lastreq->req->xtraheader;
 
 		mess+="\r\n\r\n";
 		socketsend(lastreq->req,mess.c_str(),(std::size_t)mess.size(),0);
 
-		socketsend(lastreq->req,oData,size,0);
+		socketsend(lastreq->req,oData,buffsize,0);
 		myfile.close();
 		// should close socket and tell websocket to not continue writing
 		lastreq->req->status_="toclose";
-
+		delete oData;
 	}
 	return size;
 };

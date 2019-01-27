@@ -125,7 +125,7 @@ void setup(){
 	ioserver->start();
 
 	// create log
-	iologger= IOLoggerFactory::create(RF("v0.16"),&config.configmap);
+	iologger= IOLoggerFactory::create(&config.configmap);
 	iodata->on(RF("modelUpdated"),iologger);
 	ioserver->on(RF("getLogJson"),iologger); // assuming the server wont use events to get the log as json
 

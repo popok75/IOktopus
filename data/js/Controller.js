@@ -50,11 +50,12 @@ class Controller{
 			
 		this.model.subscribe("logload",function(event){ 
 			console.log("Controller: got logload event from model "+event);
-			this.view.createLogView(this.model.log, this.model.data.nodes);
+		//	this.view.createLogView(JSON.parse(JSON.stringify(this.model.log.slice())), this.model.data.nodes);
+			this.view.updateLogView(this.model.series, this.model.data.nodes);
 		}.bind(this));
 		this.model.subscribe("logreload",function(event){ 
 			console.log("Controller: got logreload event from model "+event);
-			this.view.updateLogView(this.model.log);
+			this.view.updateLogView(this.model.series);	// should include nodes in case of an update
 		}.bind(this));
 
 			

@@ -165,7 +165,7 @@ unsigned int CurFS::appendToFile(std::string path, std::vector<unsigned char> &v
 
 		fout.write((char *)vect.data(), vect.size());
 		fout.close();
-	}
+	} else std::cerr << "CurFS::appendToFile: Failed to open file for write !" <<std::endl;
 
 	return vect.size();
 };
