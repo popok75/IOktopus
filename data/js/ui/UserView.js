@@ -43,19 +43,19 @@ class UserView  extends EventEmitter {
 
 
 
-	updateLogView(data,nodes){
+	updateLogView(data,labels,nodes){
 		if(!data || data.length==0 || data[0].length==0) {console.log("Log data table received from /log/ empty.");return;}
 		var tooshort=true;
 		for(var j in data) if(data[j].length>1) {tooshort=false;break;}
 		if(tooshort) return;
 		
 		if(!this.logview) {
-			this.logview= new LogGraphicView(data,nodes);	
+			this.logview= new LogGraphicView(data,labels,nodes);	
 			this.panel.addComponent(this.logview.getComponent());
 			var loghtml=this.logview.getComponent().getHtml();	
 			geid('loginterface').innerHTML=loghtml;	//should not be added like that
 			this.logview.init();
-		} else this.logview.updateGraph(data);		
+		} else this.logview.updateGraph(data,labels);		
 	}
 
 	init(){
@@ -501,9 +501,10 @@ class ServerView {
 ///////////////
 ///////////////
 class LogGraphicView {
-	constructor(data,nodes){
+	constructor(data,labels,nodes){
 		this.name="graphiclog";
 		this.rawdata=data;
+		this.labels=labels;
 		this.nodes=nodes;
 		this.component= new Panel(this.name+"container","","log ("+this.countPoints(data)+" time point)");
 		this.graphgroup=new LogGraphGroup(this.name,this.component,nodes);
@@ -521,14 +522,14 @@ class LogGraphicView {
 	init(){
 //		this.addGraph(this.rawdata);
 //	}addGraph(data){ 
-		this.graphgroup.init(this.rawdata,this.nodes);
+		this.graphgroup.init(this.rawdata,this.labels,this.nodes);
 	}
 
 	 
 	
-	updateGraph(data){
+	updateGraph(data,labels){
 		geid(this.name+"container").children[0].children[0].innerHTML="log ("+this.countPoints(data)+" time point)";// should move this to panel.setlegend
-		this.graphgroup.update(data);	// he is not supposed to change data object !!!
+		this.graphgroup.update(data,labels);	// he is not supposed to change data object !!!
 		//.innerHTML=this.component.getChildrenHtml();	//update visible result
 	}
 

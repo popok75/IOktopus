@@ -268,7 +268,7 @@ public:
 				 }*/
 	}
 
-	void start(){
+	void start(){	//https://tttapa.github.io/ESP8266/Chap10%20-%20Simple%20Web%20Server.html
 		statinst=this;
 
 		server.on(RF("/"), HTTP_GET, []() {

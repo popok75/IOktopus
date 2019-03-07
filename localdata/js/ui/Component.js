@@ -87,8 +87,8 @@ class Panel extends Component{
 		var posttable=" </td></tr></tbody></tbody> </table><div>";
 		var prefield="<div id='"+this.name+"';" ;
 		if(style) prefield+=" style='"+style+"'";
-		if(caption!=undefined) prefield+="><fieldset class='pure-fieldset'><legend>"+caption+"</legend>";
-		else prefield+="><fieldset class='pure-fieldset'><legend>"+this.name+"</legend>";
+		if(caption!=undefined) prefield+="><fieldset id='"+this.name+"fieldset' class='pure-fieldset'><legend>"+caption+"</legend>";
+		else prefield+="><fieldset id='"+this.name+"fieldset' class='pure-fieldset'><legend>"+this.name+"</legend>";
 		var postfield="</fieldset></div>";
 		if(name){this.pretag=prefield;this.posttag=postfield;}	// no name, no html code
 
@@ -342,7 +342,7 @@ class LabelBinaryComponent extends BinaryComponent{
 
 
 
-
+export {Component, ComponentFactory, TextAreaComponent, SelectComponent, DivComponent, Panel,Table,TableRow ,TableCell, TextLabel };
 
 
 

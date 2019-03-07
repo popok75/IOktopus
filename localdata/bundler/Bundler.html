@@ -1,0 +1,31 @@
+
+<!DOCTYPE html>
+<html>
+  <head>
+ 
+    <title>Bundle JS</title>
+    <script type="text/javascript" src="bundlerApp.js"></script>
+     
+  </head>
+  <body>
+     
+	<h2> Script Bundler</h2>
+	<label for="url">Main script URL:</label>
+	<input id="mainscripturl" type="url" name="script url" value="testApp2/testapp.js" placeholder="http://192.168.1.3/testjs/script.js"   pattern="https://.js" size="25"   required>
+	&nbsp;<label for="url">Bundle file name :</label>
+	<input id="bundlefilename" type="url" name="file name"   placeholder="script-all.js"   pattern="*.js" size="12"   required>
+	<input type="checkbox" id="minify" name="minify"> minify
+	<input id="gobutton" type="button" value="GO">
+	<div id="div_e" style="width:90%"><br>
+	<fieldset style="width:100%">
+	<h3> Full :</h3>
+	<textarea id="tarea" readonly  rows=25  style="width:100%;white-space: pre;">
+	</textarea>
+	<h3> Minified :</h3>
+	<textarea id="tareamin" readonly  rows=12  style="width:100%;">
+	</textarea>
+    <div id="div_g" style="width:100%"></div>
+	</fieldset></div>
+  
+  </body>
+</html>

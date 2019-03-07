@@ -15,7 +15,7 @@ function initclient() {
 	var controller=new Controller(model,view);
 	model.init();
 	geid('userinterface').innerHTML="client initialized";
-
+	geid('title').innerHTML="IOktopus v0.15";
 }
 
 

@@ -154,6 +154,7 @@ class RemoteLog {
 			delete obj.result;
 			if(b) {
 				this.series=getSeriesLogv15(this.log, Object.keys( this.rlog.lognames));
+				this.labels=['Date'].concat(Object.keys( this.rlog.lognames));
 				this.emit("logload",""); // emit
 			}
 		}.bind(o),
@@ -181,6 +182,7 @@ class RemoteLog {
 				if(b) {
 					//this.series=getSeriesv1(rawdata,seriesnamesy.concat(seriesnamesy2));
 					this.series=getSeriesLogv15(this.log, Object.keys( this.rlog.lognames));
+					this.labels=['Date'].concat(Object.keys( this.rlog.lognames));
 					this.emit("logreload",""); // emit
 				}
 			}.bind(o),
@@ -259,6 +261,7 @@ class RemoteLog {
 
 				this.o.log=this.log;
 				this.o.series=getSeriesLogv15(this.log, Object.keys( this.lognames));
+				this.labels=['Date'].concat(Object.keys( this.rlog.lognames));
 				this.o.emit("logload",""); // emit				
 			}
 			if(recfunc.index>min) {
@@ -317,6 +320,7 @@ class RemoteLog {
 					for(var k in dataobj) this.mergeLog(dataobj[k]);	// merge same ts
 					this.o.log=this.log;
 					this.o.series=getSeriesLogv15(this.log, Object.keys( this.lognames));
+					this.labels=['Date'].concat(Object.keys( this.rlog.lognames));
 					this.o.emit("logreload",""); // emit				
 				}
 				this.downloading=false;

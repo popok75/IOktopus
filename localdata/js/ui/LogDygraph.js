@@ -3,13 +3,33 @@
 
 //Notes : - this file should contain only generic logdygraph
 //- code could be improved
+import {Component, ComponentFactory, TextAreaComponent, SelectComponent, DivComponent, Panel,Table,TableRow ,TableCell, TextLabel} from "./Component.js";
+
+import {} from "./dygraph.min.js";	// no-copy alternative export method : the original object is exported as global only a copy is retreived with import
+//import * as syncro from "./synchronizer.js";
+
+import {downV3,moveV3,upV3,clickV3,dblClickV3,scrollV3} from "./interaction.js";
+import {} from "./synchronizer.js";	// synchronizer will just modify global variable Dygraph, so no need to import anything
 
 
 
-var MILLIFACTOR=1000;	//ts in seconds not in millis
+//Dygraph=window.Dygraph;
+var geid=document.getElementById.bind(document);
+
 var ONEDOTMSAROUND=30000;
 var USECSV=false;
 var USERANGESUBSET=true;
+
+function changeStylesheetRule(stylesheet, selector, property, value) {
+	selector = selector.toLowerCase();
+	property = property.toLowerCase();
+	value = value.toLowerCase();
+	for(var i = 0; i < stylesheet.cssRules.length; i++) {
+		var rule = stylesheet.cssRules[i];
+		if(rule.selectorText === selector) {rule.style[property] = value;return;}
+	}
+	stylesheet.insertRule(selector + " { " + property + ": " + value + "; }", 0);
+}
 
 
 class LogGraphGroup {	//interface the data and the graphs
@@ -97,7 +117,7 @@ class LogGraphGroup {	//interface the data and the graphs
 		// create a range per variable
 		for(var i in this.groups) {
 			for(var j in this.groups[i]) {
-				graph.addRange(this.name+graphid,this.groups[i][j], this.colorset[graphid-1]);	// add a range slider for each group
+		 		graph.addRange(this.name+graphid,this.groups[i][j], this.colorset[graphid-1]);	// add a range slider for each group
 				graphid++;			    
 			}
 		}
@@ -115,7 +135,7 @@ class LogGraphGroup {	//interface the data and the graphs
 		var component= new Component(canvasname);
 		component.tag="div";
 		component.style="width:100%;"//height:200px;";	 
-			this.component.addComponent(component);
+		this.component.addComponent(component);
 
 	}
 	createRangeCanvas(canvasname){
@@ -127,7 +147,7 @@ class LogGraphGroup {	//interface the data and the graphs
 	}
 
 
-}
+};
 /*	var config={
 series:{
 	y:[{name:"Humidity",unit:"%",color:colorset[0]}],
@@ -140,6 +160,8 @@ axis:{
 }
 };*/
 
+
+export {LogGraphGroup};
 
 function getRandomColor() {
 	var letters = '0123456789ABCDEF';
@@ -298,12 +320,6 @@ class LogDygraph {
 		}
 
 		var opt={
-				underlayCallback: (context) => {
-					context.save();
-				},
-				drawCallback: (dygraph) => {
-					dygraph.canvas_ctx_.restore();
-				},
 				labels: labels0,
 				animatedZooms: false,
 				//visibility: [false, false,false,false,false, false,false,false],
@@ -331,17 +347,35 @@ class LogDygraph {
 					interactionModel: this.im,
 					showRoller: true//, errorBars: true
 		};
-		var min =new Date(dataseries[0][0]).getTime()-ONEDOTMSAROUND,max=new Date(dataseries[0][0]).getTime()+ONEDOTMSAROUND;
+		var min =new Date(dataseries[0][0]).getTime()-ONEDOTMSAROUND, max=new Date(dataseries[0][0]).getTime()+ONEDOTMSAROUND;
 		if(min<0) min=0;
 		if(dataseries.length==1) opt.dateWindow=[new Date (min),new Date(max)];
-
-		 
-
+/*
+		opt.underlayCallback= (context) => {
+			context.save();
+		};
+		opt.drawCallback= (dygraph) => {
+			dygraph.canvas_ctx_.restore();
+			};
+		
+*/
 		this.maingraph=new Dygraph(
 				geid(this.name),
 				dataseries,
 				opt
 		); 
+		
+		window.onresize = function(event) {
+			this.maingraph.maindiv_.children[0].style.width="100%";
+			this.maingraph.resize();
+ 
+			for(var r in this.ranges) {
+				this.ranges[r].maindiv_.children[0].style.width="100%";
+				this.ranges[r].resize();
+			}
+				 
+			 
+		}.bind(this);
 	//	this.series0=series0;
 	//	this.labels0=labels0;
 
@@ -409,35 +443,42 @@ class LogDygraph {
 		var height=30, st=geid(rangename).style;
 		if(st && st.height && st.height.substr(st.height.length-2,st.height.length)=="px") height=Number(st.height.substr(0,st.height.length-2));
 
-
+		var opt={
+				xAxisHeight: height,
+				visibility: [false, false,false,false,false, false,false,false],
+				plotter:function(e){},
+				animatedZooms: false,
+				connectSeparatedPoints: true,
+				labels: labels0,
+				drawPoints: false,
+				fillGraph:false,
+				series: series0,
+				axes: {
+					//		y:{valueRange: range[0]},	// does not work, no change of range selector
+					//		y2:{valueRange: range[1]},
+					drawAxis : false,
+					x: {axisLabelFormatter:function(x){return "";}}
+				},
+				showRangeSelector: true,
+				interactionModel: this.im,
+				rangeSelectorHeight: height,
+				showLabelsOnHighlight :false,
+				rangeSelectorPlotStrokeColor: color,
+				rangeSelectorPlotFillGradientColor: color,
+				rangeSelectorPlotFillColor: "#FFFFFF"
+			};
+		
+		opt.underlayCallback= (context) => {
+			context.save();
+		};
+		opt.drawCallback= (dygraph) => {
+			dygraph.canvas_ctx_.restore();
+			};
 
 		var rangegraph1=new Dygraph(
 				geid(rangename),
 				dataseries,
-				{
-					xAxisHeight: height,
-					visibility: [false, false,false,false,false, false,false,false],
-					plotter:function(e){},
-					animatedZooms: false,
-					connectSeparatedPoints: true,
-					labels: labels0,
-					drawPoints: false,
-					fillGraph:false,
-					series: series0,
-					axes: {
-						//		y:{valueRange: range[0]},	// does not work, no change of range selector
-						//		y2:{valueRange: range[1]},
-						drawAxis : false,
-						x: {axisLabelFormatter:function(x){return "";}}
-					},
-					showRangeSelector: true,
-					interactionModel: this.im,
-					rangeSelectorHeight: height,
-					showLabelsOnHighlight :false,
-					rangeSelectorPlotStrokeColor: color,
-					rangeSelectorPlotFillGradientColor: color,
-					rangeSelectorPlotFillColor: "#FFFFFF"
-				}
+				opt
 		);
 
 		this.ranges.push(rangegraph1);
@@ -482,8 +523,9 @@ class LogDygraph {
 		
 		// update
 		this.maingraph.updateOptions( opt,false);
+		this.maingraph.resize();
 	}
-
+	
 	updateRangeGraph(rangegraph,r){
 		var rangename=rangegraph.getLabels()[1];
 		var dataseries=this.getRangeSeries(rangename);
@@ -498,6 +540,7 @@ class LogDygraph {
 		opt.dateWindow=[this.maingraph.xAxisRange()[0],this.maingraph.xAxisRange()[1]];
 		// update
 		rangegraph.updateOptions( opt);
+		rangegraph.resize();
 	}
 
 	update(data,labels){

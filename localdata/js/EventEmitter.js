@@ -19,3 +19,5 @@ class EventEmitter {
 		   }
 		}
 };
+
+export {EventEmitter};

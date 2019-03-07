@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+<meta http-equiv="Cache-control" content="public">
+
+<head>
+    <style>
+        .pure-table {
+            border-collapse: collapse;
+            border-spacing: 0;
+            empty-cells: show;
+            border: 1px solid #cbcbcb
+        }
+
+        .pure-table caption {
+            color: #888;
+            font: italic 112%/1 Helvetica, sans-serif;
+            padding: .5em 1;
+            text-align: center
+        }
+        .pure-fieldset {
+        	border-width: 1px;
+            border-style: solid;
+       		border-color:#888;
+        }
+		.pure-fieldset legend{
+		    color: #888;
+            font: italic 125%/1 Helvetica, sans-serif;
+         //   text-align: center
+		}
+        .pure-table td,
+        .pure-table th {
+            border-left: 1px solid #cbcbcb;
+            border-width: 0 0 0 1px;
+            font-size: inherit;
+            margin: 0;
+            overflow: visible;
+            padding: .5em 1em
+        }
+
+        .pure-table td:first-child,
+        .pure-table th:first-child {
+            border-left-width: 0
+        }
+
+        .pure-table td {
+            background-color: transparent
+        }
+
+        .pure-table-odd td,
+        .pure-table-striped tr:nth-child(2n-1) td {
+            background-color: #f2f2f2
+        }
+
+        .pure-table-bordered td {
+            border-bottom: 1px solid #cbcbcb
+        }
+
+        .pure-table-bordered tbody>tr:last-child>td {
+            border-bottom-width: 0
+        }
+
+        h1 {
+            font-size: 1.75em;
+            margin: .67em 0;
+        }
+
+        body {
+            font-family: FreeSans, Arimo, 'Droid Sans', Helvetica, Arial, sans-serif;
+        }
+        
+      /*  .dygraph-legend { text-align: right; }*/
+   
+		  .dygraph-roller {
+		  position: absolute;
+		  x: 10;
+		  z-index: 10;
+        
+    </style>
+	 
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+ 
+ <script>
+ 
+ function postURL(url,params,cb){
+		function paramToArg(param){
+			var arg="";
+			for(var k in param) {if(arg) arg+="&";arg+=k+"="+param[k]+"";} 
+			return arg;
+		}
+		var xhr = new XMLHttpRequest();
+		xhr.onreadystatechange=function(){if (this.readyState == 4 )cb(xhr.responseText,xhr); }
+		// xhr.withCredentials = true;
+		xhr.open("POST", url, true);
+
+		//Send the proper header information along with the request
+		xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+		var p = paramToArg(params);
+
+		console.log("posting request with params:"+p);
+		xhr.send(p);
+	}
+ 
+ window.onload=function(){ 
+		console.log("ok");
+	//	var url_string = window.location.href;
+		var url = new URL(window.location.href);
+		var c = url.searchParams.get("fileurl");
+		if(c[0]=="\"" && c[c.length-1]=="\"") c=c.substr(1), c=c.substr(0,c.length-1);
+	//	 if(c) c=getAbsUrlFrom(c,url.origin+url.pathname);
+		if(c) c= new URL(c,url.origin+url.pathname).href;
+		console.log(c);
+ 		loadFile(c);
+ }
+ 
+ function loadFile(c){
+	function reqListener () {
+	  	console.log(this.responseText);
+	  	var text=this.responseText;
+	  //	while (text.indexOf('\r\n') !== -1) text = text.replace('\r\n', '\n');
+		document.getElementById("tarea").textContent=text;
+	}
+	var oReq = new XMLHttpRequest();
+	oReq.addEventListener("load", reqListener);
+	oReq.open("GET", c);
+	oReq.send();	 
+	
+ }
+ 
+ function onLoadButtonClick(){
+	var c= document.getElementById("fileurl").value;
+	var url = new URL(window.location.href);
+	 if(c) c= new URL(c,url.origin+url.pathname).href;
+		console.log(c);
+	 loadFile(c);
+ }
+ function onSaveButtonClick(){ 
+	var c= document.getElementById("fileurl").value;	// how to choose argument or url
+	var url = new URL(window.location.href);
+	if(c) c= new URL(c,url.origin+url.pathname).href;
+	console.log(c);
+	 // write file to server
+	postURL("/filewrite",{path:c,content:document.getElementById("tarea").textContent},function(t,xhttp){
+		 if(xhttp.status==200) console.log("file saved");
+		 });
+	 
+	 
+ }
+ </script>
+ 
+</head>
+
+<body>
+	<title>IOktopus edit</title>
+    <h1 id="title">IOktopus-Client file edit</h1>	
+    <label for="url">File URL:</label>
+	<input id="fileurl" type="url" name="fileurl" value="localdata/config.txt" placeholder="/config.txt"   pattern="https://.txt" size="25"   required>
+	&nbsp; 
+	 
+	 
+	<input id="loadbutton" type="button" value="Load" onclick="onLoadButtonClick();">
+	<input id="savebutton" type="button" value="Save" onclick="onSaveButtonClick();">
+	<div id="div_e" style="width:90%"><br>
+	<fieldset style="width:100%">
+	 
+	<textarea id="tarea"  rows=25  style="width:100%;white-space: pre;">
+	</textarea>
+    <br>&emsp;&emsp;
+ 
+ 
+ 
+	</body>
+
+</html>

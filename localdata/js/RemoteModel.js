@@ -1,4 +1,14 @@
 
+
+import {EventEmitter} from "./EventEmitter.js";
+import {} from './loadremote.js';
+
+var jp=JSON.parse;
+var js=JSON.stringify;
+
+var MILLIFACTOR=1000;	//ts in seconds not in millis
+
+
 String.prototype.replaceAll = function(search, replacement) {
 	var target = this;
 	return target.split(search).join(replacement);
@@ -505,3 +515,5 @@ function getSeriesLogv15(data0,names){
 	}
 	return series;
 }
+
+export {RemoteModel};
