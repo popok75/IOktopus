@@ -47,6 +47,7 @@
 
 #include <algorithm>
 
+#include "infrastructure/ErrorLogFile.h"
 
 
 
@@ -70,6 +71,9 @@ void loadDevices();
 #undef FTEMPLATE
 #define FTEMPLATE ".irom.text.main"
 
+GenString getTimestampString(){
+	return CLOCK32.getNowAsString()+RF("-UTC");
+};
 
 void setup(){
 
@@ -77,10 +81,16 @@ void setup(){
 
 	//	testDSB();
 	//	return;
-	println(RF("\n#################### Crash dump file start"));
-	unsigned int fs=0;
-	CURFS.printFile(CRASHFILEPATH,fs);
-	println(RF("#################### Crash dump file end"));
+	CurSaveCrash.setTimestampFunc(&getTimestampString);
+	if(CURFS.exists(CRASHFILEPATH)){
+		println(RF("\n#################### Crash dump file start"));
+		unsigned int fs=0;
+
+		CURFS.printFile(CRASHFILEPATH,fs);
+		println(RF("#################### Crash dump file end"));
+
+	} else println(RF("\nNo crash dump saved"));
+
 
 
 //	to_string(0);
@@ -110,7 +120,18 @@ void setup(){
 
 	// connect to ssid/make an ap
 	wifiman.initFromConfig(&config.configmap);
-
+/*
+	if(!CURFS.exists(CRASHFILEPATH)){
+		//crash
+		 Serial.println("Attempting to divide by zero ...");
+		        int result, zero;
+		        zero = 0;
+		        result = 1 / zero;
+		        Serial.print("Result = ");
+		        Serial.println(result);
+		println(RF("\nNo crash saved"));
+	}
+*/
 	// create data model
 	iodata=IODataFactory::create("0.1");	//create v0.1
 
@@ -119,7 +140,8 @@ void setup(){
 	//	iodata->update(path, map);	GenString jsonstr=iodata->getAsJson();
 
 	// create server// develop client done
-	ioserver= IOServerFactory::create("IOktopus-Server", "v0.1");
+	ioserver= IOServerFactory::create("IOktopus-Server", "v0.1",&config.configmap);
+
 	ioserver->setIOData(iodata);
 	ioserver->on("getAsJson",iodata);
 	ioserver->start();
@@ -131,6 +153,8 @@ void setup(){
 
 	// load devices
 	loadDevices();
+
+	errLog("IOktopus started successfully");
 
 /*
  	config.configmap.set("device0-model","DHT22");

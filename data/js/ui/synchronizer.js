@@ -1,3 +1,6 @@
+
+
+
 /**
  * Synchronize zooming and/or selections between a set of dygraphs.
  *
@@ -31,6 +34,7 @@
  * You may also set `range: false` if you wish to only sync the x-axis.
  * The `range` option has no effect unless `zoom` is true (the default).
  */
+var synchronize;
 (function() {
 /* global Dygraph:false */
 'use strict';
@@ -42,7 +46,7 @@ if (window.Dygraph) {
   Dygraph = require('../dygraph');
 }
 
-var synchronize = function(/* dygraphs..., opts */) {
+ synchronize = function(/* dygraphs..., opts */) {
   if (arguments.length === 0) {
     throw 'Invalid invocation of Dygraph.synchronize(). Need >= 1 argument.';
   }
@@ -247,3 +251,5 @@ function attachSelectionHandlers(gs, prevCallbacks) {
 Dygraph.synchronize = synchronize;
 
 })();
+
+export {synchronize};

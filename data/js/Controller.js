@@ -83,3 +83,6 @@ class NodeController {
 	}
 	
 };
+
+
+export {Controller};

@@ -9,6 +9,11 @@ public:
 	CurCrashSaverx86(char *filename=0){};
 	void clear(){println(RF("CrashSaverx86 clear"));};
  	std::string print(){println(RF("CrashSaverx86 print")); return RF("no crashes saved yet");};
+
+ 	void setTimestampFunc(GenString (*timestampfunc)()){
+ 	//	timestampfunc=&getTimestampString;
+ 	}
+
 //	int count(){return 0;};
 } CurSaveCrash;
 #endif
@@ -21,6 +26,7 @@ public:
 #include <EspSaveCrashSpiffs.h>
 #endif
 
+GenString (*tsf)()=0;
 
 class CurCrashSaverESP8266{
 	public:
@@ -38,6 +44,21 @@ class CurCrashSaverESP8266{
 #endif
 		return str;
 	};
+
+	static String tsfunc(){
+		if(tsf) {
+			GenString str0=(*tsf)().c_str();
+			return String(str0.c_str());
+		}
+		return String();
+	}
+
+	static void setTimestampFunc(GenString (*tsf0)()){
+		tsf=tsf0;
+		timestampfunc=&tsfunc;
+	 }
+
+//	String (*timestampfunc)()=0;
 
 } CurSaveCrash;
 

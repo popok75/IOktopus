@@ -79,11 +79,26 @@
 	 
     <meta name='viewport' content='width=device-width, initial-scale=1.0'>
     <script type="module" src="/js/IOktopusClient.js"></script>
+    <script>
+    function confirmLink(link){
+        console.log("called with link"+link);
+    }
+    </script>
 </head>
 
 <body>
 	<title>IOktopus</title>
     <h1 id="title">IOktopus-Client</h1>	
+    
+    <fieldset id='linkgroup' style="position:absolute;right:2em;top:1em;border:1px dotted;">
+    <a href="/edit.html?fileurl='/config.txt'">edit config</a><br>
+    <a href="/errorlog.txt">errorlog file</a>
+    <a href="/eraseErrorLog" onclick="return confirm('Are you sure to erase ErrorLog file?')">(erase)</a><br>
+    <a href="/crashdump.txt">crashdump file</a>
+    <a href="/eraseCrashDump" onclick="return confirm('Are you sure to erase CrashDump file?')">(erase)</a><br>
+    <a href="/reboot" onclick="return confirm('Are you sure to reboot the esp ? all data in memory will be lost.')">reboot</a>
+    </fieldset>
+
     <div id='userinterface'><p>Loading...</p></div>
     <div id='loginterface'></div>
 	<div id='serverstatus'></div>

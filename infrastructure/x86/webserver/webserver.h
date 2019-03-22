@@ -61,6 +61,9 @@ class webserver {
       std::string                        contentType;
       std::string 						 xtraheader="";
       std::string 						 allheaders;
+      std::string 						 requestContent="";
+      unsigned long						 contentLength=0;
+
       /*   authentication_given_ is true when the user has entered a username and password.
            These can then be read from username_ and password_ */
       bool authentication_given_;

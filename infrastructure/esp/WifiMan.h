@@ -151,6 +151,8 @@ void  WifiMan::startAP(){
 	if(apname.empty()) apname=RF("ioktopusAP");	//move to constructor ?
 	WiFi.mode(WIFI_AP_STA);
 	WiFi.softAP(apname.c_str());
+	print(RF("AP started with ip:"));
+	println(WiFi.softAPIP());
 }
 
 //std::map<std::string,std::string > parsePassFile(unsigned char *buff){return {{RF("ssid"),RF("Gardening, cheaper than therapy")},{RF("password"),RF("seeds freedom")},{RF("apname"),RF("IOktopus-AP")}};}

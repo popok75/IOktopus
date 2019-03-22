@@ -10,8 +10,8 @@
 class IOServerFactory
 {
 public:
-	static IOServerv01* create(GenString name,GenString versionnumber){
-		return new IOServerv01(name);
+	static IOServerv01* create(GenString name,GenString versionnumber, GenMap *config=0){
+		return new IOServerv01(name,config);
 	};
 };
 

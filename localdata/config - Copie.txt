@@ -5,18 +5,13 @@
 			- wifi : 
 				- wifi-apname: name of wifi ssid when created
 				- wifi-ssid : name of wifi station to connect
-				- wifi-password : wifi station password
-			- server: 
-				- server-admin-password: password to modify protected files and params
-				- server-name: to display in interface	//not implemented yet ?
-				- server-public-write: comma separated list of files that will not be password protected to write
-				- server-private-read: comma separated list of files that will be password protected to read 	 
+				- wifi-passwd : wifi station password
+			- server-name : name to display in interface
 			- log : 
-				- log-type: memory, file
 				- log-refreshperiodsec : seconds
 				- log-minmemorylimit :  bytes
 				- log-maxtimepoints 
-			- devices (syntax : e.g. "device" number "-model") : 
+			- devices (syntax : e.g. "device"+number+"-model") : 
 				- device0-model : SHT15, HTU21, DHT22, Psychrometer, DSB18, FakeHTU
 				- device0-pins : value is a comma separated list of int
 				- device0-path or device0-path-temperature: name in model to use for this sensor channel
@@ -28,13 +23,7 @@ wifi-apname: IOktopusAP
 wifi-ssid: Gardening, cheaper than therapy
 wifi-password: seeds freedom
 
-log-type: memory
-
-server-admin-password: entropy
-server-private-read: /config.txt
-server-public-write: /config.txt
-
-server-name: IOktopus-v0.15
+server-name: IOktopus-v0.1
 
 log-refreshperiodsec:20					 
 log-minmemorylimit:10000			 

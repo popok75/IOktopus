@@ -1,3 +1,5 @@
+
+export {downV3,moveV3,upV3,clickV3,dblClickV3,scrollV3 };
 // Code for a variety of interaction models. Used in interaction.html, but split out from
 // that file so they can be tested in isolation.
 //

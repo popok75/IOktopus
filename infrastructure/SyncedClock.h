@@ -154,6 +154,13 @@ public:
 		listeners.push_back(cl);
 	}
 
+	GenString getNowAsString(){
+		uint32_t sec=getSec();
+		GenString str(ctime((time_t*)(&sec)));
+		while(str[str.length()-1]=='\n' || str[str.length()-1]=='\r') str=str.substr(0,str.length()-1);
+		return str;
+	}
+
 	// - first, start a timer until highest bit on+fragment
 	// - at timer, update
 	// if inconsistent ->if highpart increment diff, change highpart, cancel any timer, start a new timer until highest bit off+fragment

@@ -4,60 +4,6 @@
 
 <head>
     <style>
-        .pure-table {
-            border-collapse: collapse;
-            border-spacing: 0;
-            empty-cells: show;
-            border: 1px solid #cbcbcb
-        }
-
-        .pure-table caption {
-            color: #888;
-            font: italic 112%/1 Helvetica, sans-serif;
-            padding: .5em 1;
-            text-align: center
-        }
-        .pure-fieldset {
-        	border-width: 1px;
-            border-style: solid;
-       		border-color:#888;
-        }
-		.pure-fieldset legend{
-		    color: #888;
-            font: italic 125%/1 Helvetica, sans-serif;
-         //   text-align: center
-		}
-        .pure-table td,
-        .pure-table th {
-            border-left: 1px solid #cbcbcb;
-            border-width: 0 0 0 1px;
-            font-size: inherit;
-            margin: 0;
-            overflow: visible;
-            padding: .5em 1em
-        }
-
-        .pure-table td:first-child,
-        .pure-table th:first-child {
-            border-left-width: 0
-        }
-
-        .pure-table td {
-            background-color: transparent
-        }
-
-        .pure-table-odd td,
-        .pure-table-striped tr:nth-child(2n-1) td {
-            background-color: #f2f2f2
-        }
-
-        .pure-table-bordered td {
-            border-bottom: 1px solid #cbcbcb
-        }
-
-        .pure-table-bordered tbody>tr:last-child>td {
-            border-bottom-width: 0
-        }
 
         h1 {
             font-size: 1.75em;
@@ -105,6 +51,7 @@
 	//	var url_string = window.location.href;
 		var url = new URL(window.location.href);
 		var c = url.searchParams.get("fileurl");
+		if(!c) return;
 		if(c[0]=="\"" && c[c.length-1]=="\"") c=c.substr(1), c=c.substr(0,c.length-1);
 	//	 if(c) c=getAbsUrlFrom(c,url.origin+url.pathname);
 		if(c) c= new URL(c,url.origin+url.pathname).href;
@@ -113,16 +60,26 @@
  }
  
  function loadFile(c){
-	function reqListener () {
-	  	console.log(this.responseText);
-	  	var text=this.responseText;
-	  //	while (text.indexOf('\r\n') !== -1) text = text.replace('\r\n', '\n');
-		document.getElementById("tarea").textContent=text;
+	function reqListener (t,xhttp) {
+		if(xhttp.status==200) {
+		  	var text=xhttp.responseText;  //	while (text.indexOf('\r\n') !== -1) text = text.replace('\r\n', '\n');
+			document.getElementById("tarea").value=text;
+			document.getElementById("status").innerText="File loaded";
+		}
+		if(xhttp.status==403){
+			var text=xhttp.responseText;			
+			document.getElementById("status").innerText=text;
+		}
+	  	console.log(xhttp.responseText);
 	}
-	var oReq = new XMLHttpRequest();
+	var pwd=document.getElementById("passwd").value;
+/*	var oReq = new XMLHttpRequest();
 	oReq.addEventListener("load", reqListener);
-	oReq.open("GET", c);
-	oReq.send();	 
+	oReq.open("GET", c+"?password="+pwd);
+	oReq.send();	*/ 
+	
+	postURL(c,{password:pwd},reqListener);
+	
 	
  }
  
@@ -133,15 +90,26 @@
 		console.log(c);
 	 loadFile(c);
  }
+ 
+ 
  function onSaveButtonClick(){ 
 	var c= document.getElementById("fileurl").value;	// how to choose argument or url
 	var url = new URL(window.location.href);
 	if(c) c= new URL(c,url.origin+url.pathname).href;
 	console.log(c);
 	 // write file to server
-	postURL("/filewrite",{path:c,content:document.getElementById("tarea").textContent},function(t,xhttp){
-		 if(xhttp.status==200) console.log("file saved");
-		 });
+	var r = confirm("This will replace the previous content of file "+c+" with the content on the screen. Are you sure you want to continue ?");
+	if (r == true) {
+		var tval=document.getElementById("tarea").value;
+		var usernam=document.getElementById("username").value;
+		var pwd=document.getElementById("passwd").value;
+		
+		postURL("/filewrite",{path:c,username:usernam, password:pwd, content:tval},function(t,xhttp){
+			 if(xhttp.status==200) console.log("file saved");
+			 document.getElementById("status").innerText=t;
+			 });
+	} else {
+	}
 	 
 	 
  }
@@ -153,12 +121,15 @@
 	<title>IOktopus edit</title>
     <h1 id="title">IOktopus-Client file edit</h1>	
     <label for="url">File URL:</label>
-	<input id="fileurl" type="url" name="fileurl" value="localdata/config.txt" placeholder="/config.txt"   pattern="https://.txt" size="25"   required>
+	<input id="fileurl" type="url" name="fileurl" value="./config.txt" placeholder="/config.txt"   pattern="https://.txt" size="25"   required>
 	&nbsp; 
 	 
-	 
-	<input id="loadbutton" type="button" value="Load" onclick="onLoadButtonClick();">
+	<input id="loadbutton" type="button" value="Load" onclick="onLoadButtonClick();"> 
 	<input id="savebutton" type="button" value="Save" onclick="onSaveButtonClick();">
+	 <br>
+	username:<input id="username" type="url"  value="admin"  size="15">/ password:
+	<input id="passwd" type="password" size="15">
+	<div id="status" style="text-align:center;background-color:#F8F8F8"> server ok</div> 
 	<div id="div_e" style="width:90%"><br>
 	<fieldset style="width:100%">
 	 

@@ -53,18 +53,19 @@ unsigned webserver::Request(void* ptr_s) {
   }
 
   http_request req;
-
+  int startpos=3;
   if (line.find("GET") == 0) {
     req.method_="GET";
   }
   else if (line.find("POST") == 0) {
+	  startpos=4;
     req.method_="POST";
   }
 
   std::string path;
   std::map<std::string, std::string> params;
 
-  size_t posStartPath = line.find_first_not_of(" ",3);
+  size_t posStartPath = line.find_first_not_of(" ",startpos);
 
   SplitGetReq(line.substr(posStartPath), path, params);
 
@@ -78,6 +79,7 @@ unsigned webserver::Request(void* ptr_s) {
   static const std::string accept_language = "Accept-Language: "    ;
   static const std::string accept_encoding = "Accept-Encoding: "    ;
   static const std::string user_agent      = "User-Agent: "         ;
+  static const std::string content_length      = "Content-Length: "         ;
 
   while(1) {
     line=s.ReceiveLine();
@@ -111,11 +113,29 @@ unsigned webserver::Request(void* ptr_s) {
     else if (line.substr(0, user_agent.size()) == user_agent) {
       req.user_agent_ = line.substr(user_agent.size());
     }
+    else if (line.substr(0, content_length.size()) == content_length) {
+          req.contentLength = std::stol(line.substr(content_length.size()));
+        }
 	if(!req.allheaders.empty()) req.allheaders+="\n";
 	req.allheaders+=line;
 
   }
 
+  if(startpos==4) {
+	  req.requestContent=std::string("X?");
+	  while(1) {
+	     line=s.ReceiveBytes();
+	     if (line.empty()) break;
+	     req.requestContent+=line;
+	//     std::cout<<"adding line" <<line <<std::endl;
+	     std::cout<<"newsize" <<req.requestContent.size() << " " <<req.contentLength <<std::endl;
+
+	     if(req.requestContent.size()>=req.contentLength) break;
+	  }
+	  SplitGetReq(req.requestContent, path, params);
+	  req.params_ = params;
+  }
+//  std::cout<<"out of loop"  <<std::endl;
   request_func_(&req);
 
   if(req.status_=="toclose"){

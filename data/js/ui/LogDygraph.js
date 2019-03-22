@@ -3,13 +3,33 @@
 
 //Notes : - this file should contain only generic logdygraph
 //- code could be improved
+import {Component, ComponentFactory, TextAreaComponent, SelectComponent, DivComponent, Panel,Table,TableRow ,TableCell, TextLabel} from "./Component.js";
+
+import {} from "./dygraph.min.js";	// no-copy alternative export method : the original object is exported as global only a copy is retreived with import
+//import * as syncro from "./synchronizer.js";
+
+import {downV3,moveV3,upV3,clickV3,dblClickV3,scrollV3} from "./interaction.js";
+import {} from "./synchronizer.js";	// synchronizer will just modify global variable Dygraph, so no need to import anything
 
 
 
-var MILLIFACTOR=1000;	//ts in seconds not in millis
+//Dygraph=window.Dygraph;
+var geid=document.getElementById.bind(document);
+
 var ONEDOTMSAROUND=30000;
 var USECSV=false;
 var USERANGESUBSET=true;
+
+function changeStylesheetRule(stylesheet, selector, property, value) {
+	selector = selector.toLowerCase();
+	property = property.toLowerCase();
+	value = value.toLowerCase();
+	for(var i = 0; i < stylesheet.cssRules.length; i++) {
+		var rule = stylesheet.cssRules[i];
+		if(rule.selectorText === selector) {rule.style[property] = value;return;}
+	}
+	stylesheet.insertRule(selector + " { " + property + ": " + value + "; }", 0);
+}
 
 
 class LogGraphGroup {	//interface the data and the graphs
@@ -127,7 +147,7 @@ class LogGraphGroup {	//interface the data and the graphs
 	}
 
 
-}
+};
 /*	var config={
 series:{
 	y:[{name:"Humidity",unit:"%",color:colorset[0]}],
@@ -140,6 +160,8 @@ axis:{
 }
 };*/
 
+
+export {LogGraphGroup};
 
 function getRandomColor() {
 	var letters = '0123456789ABCDEF';

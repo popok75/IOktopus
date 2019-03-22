@@ -7,12 +7,16 @@
 #include "../../infrastructure/SyncedClock.h"
 
 #include "../../infrastructure/CompatCrash.h"
+#include "../../infrastructure/ErrorLogFile.h"
 
 #include "IOServerGen.h"
 
 #undef FTEMPLATE
 #define FTEMPLATE ".irom.text.ioserverv01"
 
+#define SERVERADMINPASSWD_KEYWORD "server-admin-password"
+#define SERVERPUBLICWRITE_KEYWORD "server-public-write"
+#define SERVERPRIVATEREAD_KEYWORD "server-private-read"
 //#define MULTIPARTLOG true
 
 #define MAXHTTPCHUNK 2048
@@ -54,21 +58,38 @@ class IOServerv01: public IOServerGen
 {
 public:
 	bool chunked=true;
+	GenMap *config=0;
+	Ticker serverticker;
 
-	IOServerv01 (unsigned int httpport=80): IOServerGen(httpport){
+	IOServerv01 (unsigned int httpport=80, GenMap* config0=0): IOServerGen(httpport){
 		println(RF("Constructor IOServerv01"));
+		config=config0;
 	};
-	IOServerv01 (GenString name, unsigned int httpport=80): IOServerGen(name,httpport){println(RF("Constructor IOServerv01"));};
+	IOServerv01 (GenString name, unsigned int httpport=80, GenMap* config0=0): IOServerGen(name,httpport){println(RF("Constructor IOServerv01"));config=config0;};
+	IOServerv01 (GenString name, GenMap* config0=0): IOServerGen(name,80){println(RF("Constructor IOServerv01"));config=config0;};
 
 	void setIOData(IODataGen *myiodata1){myiodata=myiodata1;}
 
+	static void rebootEsp(){
+#ifdef ESP8266BUILD
+		ESP.restart();
+	//	ESP.reset();
+	//	WiFi.forceSleepBegin(); wdt_reset(); ESP.restart(); while(1)wdt_reset();
+#endif
+
+#ifdef x86BUILD
+		exit(1);
+#endif
+	}
+
 	bool handleRequest(GenString path){
+
 		println(RF("----------------->"));
 #ifdef ESP8266
 		print(RF("IOServerv01::handleRequest : free memory :"));	println(ESP.getFreeHeap(),DEC);
 #endif
 		if(path.length()>1 && path[path.length()-1]=='/') path.erase(path.length()-1);		//		print("IOServer::handleFileRead: mem 0 :");println(ESP.getFreeHeap(),DEC);
-		println(RF("IOServer::handleFileRead : serving uri : ")+path);
+		println(RF("IOServer::handleFileRead : serving uri : '")+path+"'");
 		/*		if(path=="/ping") { // not implemented yet
 			server.send(200, "image/png","pong");
 			return true;
@@ -90,6 +111,10 @@ public:
 		}
 
 		if(path==RF("/eraseCrashDump")) {CurSaveCrash.clear();server.send(200, RF("application/json"),"CrashDump file erased\n");return true;}
+		if(path==RF("/eraseErrorLog")) {eraseErrorLogFile();server.send(200, RF("application/json"),"ErrorLog file erased\n");return true;}
+
+		if(path==RF("/reboot")) {serverticker.once_ms(2000, rebootEsp);server.send(200, RF("application/json"),RF("Rebooting in 2sec\n"));return true;}
+
 
 		if(path==RF("/data") && myiodata) {
 			// GenString message=myiodata->getAsJson();
@@ -117,7 +142,36 @@ public:
 				if(isDigit(endstr)) end=strToUint64(endstr);
 			}
 		}
+		bool bt=startsWith(path,"/filewrite");
+		if(bt) println(GenString()+RF("Filewrite test: 1"));
+		else println(GenString()+RF("Filewrite test: 0 ")+path);
+		if(startsWith(path,"/filewrite")) {
+			bool b=1;
+			GenString p0=getArgument(RF("path"));
+			GenString cont=getArgument(RF("content"));
+			println(GenString()+RF("Filewrite : ")+path+RF(" ")+ p0 +RF(" :")+cont);
+			//remove http and host
+			if(startsWith(p0,"http://")) {
+				int pos=p0.find("/",7);
+				if(pos>=0) p0=p0.substr(pos);
+			}
+			//check permissions
+			GenString pwd=getArgument(RF("password"));
+			if(config) {
+				bool skipcheck=false;
+				GenString publicwrite=config->get(RF(SERVERPUBLICWRITE_KEYWORD));
+				unsigned int pos=publicwrite.find(p0);
+				if(pos<publicwrite.size()) skipcheck=true;
+				GenString adminpwd=config->get(RF(SERVERADMINPASSWD_KEYWORD));
+				if(skipcheck || pwd==adminpwd){
+					CURFS.rewriteFile(p0,(unsigned char *)cont.c_str(),cont.size());
+					server.send(200, RF("text/html"),RF("File ")+p0+ RF(" updated\n"));
+				} else server.send(200, RF("text/html"),RF("Password didn't match !\n"));
+			} else server.send(200, RF("text/html"),RF("No configuration available to server !\n"));
+			//write file
 
+			return b;
+		}
 
 		if(startsWith(path,"/log/")) {
 			bool b=(server.streamFile(path, contentType,start,end)>0);
@@ -139,6 +193,22 @@ public:
 			contentType="image/jpeg";
 		}
 		 */
+
+		//check permissions
+		if(config){
+			GenString publicwrite=config->get(RF(SERVERPRIVATEREAD_KEYWORD));
+			unsigned int pos=publicwrite.find(path);
+			if(pos<publicwrite.size()) {
+				GenString adminpwd=config->get(RF(SERVERADMINPASSWD_KEYWORD));
+				GenString pwd=getArgument(RF("password"));
+				if(pwd!=adminpwd){
+					server.send(403, RF("text/html"),RF("File access forbidden without correct password\n"));
+					return true;
+				}
+			}
+
+		}
+
 		bool b=(server.streamFile(path, contentType,start,end)>0);
 	//	bool b=(server.streamFile(path, contentType)>0);
 		if(b) println(GenString()+RF("Streamed : ")+path+RF(" ")+ contentType +RF(" : 1"));
@@ -151,7 +221,7 @@ public:
 	GenString getArgument(GenString argname){
 		std::map<std::string,std::string> args=server.getArguments();
 		for(auto it : args) {
-			println(GenString()+RF("Found argument :")+it.first+":"+it.second);
+			//println(GenString()+RF("Found argument :")+it.first+":"+it.second);
 			if(it.first==argname) {
 				return it.second;
 			}

@@ -342,7 +342,7 @@ class LabelBinaryComponent extends BinaryComponent{
 
 
 
-
+export {Component, ComponentFactory, TextAreaComponent, SelectComponent, DivComponent, Panel,Table,TableRow ,TableCell, TextLabel };
 
 
 

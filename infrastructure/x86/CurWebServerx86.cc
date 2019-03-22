@@ -36,17 +36,17 @@ void anotherThread(void (func)(ParamTypes...), ParamTypes... parames)
 	std::thread([func,parames...]()
 			{
 		std::cout<<"anotherThread:3 Started a new thread"<< std::endl;
-//		newthreadmut.unlock();
+		//		newthreadmut.unlock();
 		func(parames...);
 		mut.lock();
 		threadNumber--;
 		mut.unlock();
 			}).detach();
-/*	newthreadmut.lock();
+	/*	newthreadmut.lock();
 	newthreadmut.lock();
 	newthreadmut.unlock();
-*/	std::this_thread::sleep_for(std::chrono::milliseconds(10));
-	std::cout<<"anotherThread:2 Created a new thread"<< std::endl;
+	 */	std::this_thread::sleep_for(std::chrono::milliseconds(10));
+	 std::cout<<"anotherThread:2 Created a new thread"<< std::endl;
 }	//freeze if we dont wait : the function should not return before the thread start or it kills the lambda
 
 
@@ -133,6 +133,11 @@ void  CurWebServerx86::send(int status, std::string type, std::string message){
 		lastreq->req->status_ = "404 Not Found";
 		body       = message; //lastreq->status_;
 	}
+	if(status==403) {
+		lastreq->req->status_ = "403 Forbidden";
+		body       = message; //lastreq->status_;
+	//	lastreq->req->answer_ += body;
+	}
 	if(status==200){
 		lastreq->req->status_ = "200 OK";
 		body       = message;
@@ -150,7 +155,7 @@ void  CurWebServerx86::send(int status, std::string type, std::string message){
 void  CurWebServerx86::keepopen(){
 
 }
-*/
+ */
 std::string cppreplaceAll(std::string src, std::string pattern,std::string newval){
 	std::string::size_type n = 0;
 	while ( ( n = src.find( pattern, n ) ) != std::string::npos )
@@ -176,7 +181,7 @@ size_t CurWebServerx86::streamFile(std::string filename, std::string contentType
 	diskpath+=path;
 	if (contentType == ".gz" ||
 			(endsWith2(filename, ".gz") && contentType != "none" && contentType !="application/octet-stream"))
-	     {sendHeader("Content-Encoding", "gzip");}
+	{sendHeader("Content-Encoding", "gzip");}
 
 	std::ifstream myfile(diskpath, std::ios::in|std::ios::binary|std::ios::ate);
 	std::size_t size = 0;
@@ -237,12 +242,12 @@ void Request_Handler(webserver::http_request* r) {
 
 		serverinst->lasturi=r->path_;
 		serverinst->lastreq=new httpconnHandler(r);
-//		printf("Request_Handler:: 1.webserver asking timeout\n");
+		//		printf("Request_Handler:: 1.webserver asking timeout\n");
 		monoSetTimeOut(1,false,callServer);
-//		printf("Request_Handler:: 2.webserver func going to wait\n");
+		//		printf("Request_Handler:: 2.webserver func going to wait\n");
 		while(serverbusy)
 			std::this_thread::sleep_for(std::chrono::milliseconds(1));
-//		printf("Request_Handler:: 3.webserver waited and going to exit\n");
+		//		printf("Request_Handler:: 3.webserver waited and going to exit\n");
 
 	}
 }

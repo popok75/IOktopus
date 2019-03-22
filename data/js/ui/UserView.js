@@ -1,4 +1,13 @@
 
+import {EventEmitter} from "../EventEmitter.js";
+
+import {Component, ComponentFactory, TextAreaComponent, SelectComponent, DivComponent, Panel,Table,TableRow ,TableCell, TextLabel} from "./Component.js";
+
+import {LogGraphGroup } from "./LogDygraph.js";
+
+var geid=document.getElementById.bind(document);
+var lightgray="#BBBBBB";
+
 
 
 class UserView  extends EventEmitter {
@@ -592,22 +601,12 @@ class LogTableView {
 	getComponent(){return this.component;}
 }
 
-function changeStylesheetRule(stylesheet, selector, property, value) {
-	selector = selector.toLowerCase();
-	property = property.toLowerCase();
-	value = value.toLowerCase();
-	for(var i = 0; i < stylesheet.cssRules.length; i++) {
-		var rule = stylesheet.cssRules[i];
-		if(rule.selectorText === selector) {rule.style[property] = value;return;}
-	}
-	stylesheet.insertRule(selector + " { " + property + ": " + value + "; }", 0);
-}
 
 
 
 
 
-
+export {UserView};
 
 
 

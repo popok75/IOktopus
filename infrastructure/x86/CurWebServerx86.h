@@ -10,6 +10,7 @@ class httpconnHandler;
 class httpserverHandler;
 
 #define HTTP_GET 1
+#define HTTP_POST 2
 #define CONTENT_LENGTH_UNKNOWN 1
 
 class CurWebServerx86 {
@@ -50,9 +51,6 @@ public:
 
 
 	void handleClient();	// call mono yield function
-
-
-
 
 };
 
