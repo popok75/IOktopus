@@ -21,12 +21,12 @@ IOktopus also runs on x86 with emulated sensors for demonstration and developmen
 ## How to run IOktopus
 ### Install and run the binary on your esp8266 from Windows
 #### Step 1 install the binary on the board
-1- download the last release binary from the release directory : link missing
-2- download the "Flash Download Tools" from [expressif website](https://www.espressif.com/en/support/download/other-tools?keys=&field_type_tid%5B%5D=14)
-3- Decompress the expressif tool, execute it, i.e. "flash_download_tools_v3.6.5.exe", and choose "ESP8266 Download tool" that will open a new window
-4- Select the image and add 0x00000 as address. Choose DIO and select the correct flash size, e.g. 32mbits for 4mbytes. Choose the com port of your board and the speed, e.g. COM18 and 921600 works for me.
-5- Press start and wait the transfer to end. Close the flash application and reset your board with the button or by reconnecting it.
-6- The binary should be running now you can check if there is a wifi network espAP that should be available for next step.
+- 1- download the last release binary from the release directory : link missing
+- 2- download the "Flash Download Tools" from [expressif website](https://www.espressif.com/en/support/download/other-tools?keys=&field_type_tid%5B%5D=14)
+- 3- Decompress the expressif tool, execute it, i.e. "flash_download_tools_v3.6.5.exe", and choose "ESP8266 Download tool" that will open a new window
+- 4- Select the image and add 0x00000 as address. Choose DIO and select the correct flash size, e.g. 32mbits for 4mbytes. Choose the com port of your board and the speed, e.g. COM18 and 921600 works for me.
+- 5- Press start and wait the transfer to end. Close the flash application and reset your board with the button or by reconnecting it.
+- 6- The binary should be running now you can check if there is a wifi network espAP that should be available for next step.
 #### Step 2 transfer the files on the board
 ### Compile the code
 
