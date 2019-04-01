@@ -1,2 +1,5 @@
-/config.txt|https://raw.githubusercontent.com/popok75/IOktopus/master/data/config.txt
 /js/IOktopusClient.js|https://raw.githubusercontent.com/popok75/IOktopus/master/data/js/IOktopusClient.js
+/favicon.png|https://raw.githubusercontent.com/popok75/IOktopus/master/data/favicon.png
+/edit.html.gz|https://raw.githubusercontent.com/popok75/IOktopus/master/data/edit.html.gz
+/foghorn.mp3|https://raw.githubusercontent.com/popok75/IOktopus/master/data/foghorn.mp3
+/filelist.txt|https://raw.githubusercontent.com/popok75/IOktopus/master/data/filelist.txt
