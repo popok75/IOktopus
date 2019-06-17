@@ -1,10 +1,17 @@
 #ifndef CONFIGURATION_H
 #define CONFIGURATION_H
 
+
+#include "CompatFS.h"
 #include "../datastruct/GenMap.h"
+
 
 #undef FTEMPLATE
 #define FTEMPLATE ".irom.text.configuration1"
+
+#include "../datastruct/GenMap.h"
+
+#include "CompatFS.h"
 
 bool parseTxtMap(GenString content, GenMap &dest);
 

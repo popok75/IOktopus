@@ -4,5 +4,5 @@
 #include "BasicEventEmitter.h"
 
 #define DefaultEventEmitter BasicEventEmitter
-
+#define DefaultAsyncEmitter TimerAsyncEmitter
 #endif

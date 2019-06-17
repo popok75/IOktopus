@@ -1,9 +1,15 @@
 #ifndef CURWEBSERVERESP8266
 #define CURWEBSERVERESP8266
 
+#define USEMDNS true
+
 #include <map>
 #include <ESP8266WebServer.h>
+#if USEMDNS
+#include <ESP8266mDNS.h>
+#endif
 #include "CurFSEsp8266.h"
+
 #undef FTEMPLATE
 #define FTEMPLATE ".irom.text.curwebserver"
 
@@ -13,20 +19,44 @@ class CurWebServerEsp8266 {
 public:
 	int port;
 	ESP8266WebServer server;
+	GenString mdnsname;
+	bool mdnsstarted=false;
 
 	CurWebServerEsp8266(unsigned int port0=80): port(port0), server(port0){};
 
 	void collectHeaders(const char **headers,size_t length){server.collectHeaders(headers,length);}
 
-	void begin(){server.begin();};
-	static void onFound(){
+	void setMdnsName(GenString newmdnsname){mdnsname=newmdnsname;}
 
-	}
+
+	void begin(){
+#if USEMDNS
+		if(!mdnsname.empty()) {
+			Serial.println(String()+"CurWebServerEsp8266 starting mdns with name"+mdnsname.c_str());
+			mdnsstarted=MDNS.begin(mdnsname.c_str());
+		}
+#endif
+
+        Serial.println("CurWebServerEsp8266 starting server");
+		server.begin();
+
+#if USEMDNS
+ 	 	 if(mdnsstarted) MDNS.addService("http", "tcp", 80);
+#endif
+	};
+
+
+	static void onFound(){}
+
 	void on(std::string path, HTTPMethod getpost, void (*func)()){
 		server.on(path.c_str(), getpost, func);
 	};
 	void onNotFound(void (*func)()){server.onNotFound(func);};
-	void handleClient(){server.handleClient();};//do nothing
+	void handleClient(){
+#if USEMDNS
+		if(mdnsstarted) MDNS.update();
+#endif
+		server.handleClient();};//do nothing
 	void sendHeader( std::string header, std::string value){server.sendHeader(header.c_str(), value.c_str());};
 
 	void send(int status, std::string type, std::string message){server.send(status, type.c_str(), message.c_str());};
@@ -50,9 +80,11 @@ public:
 		return 0;
 	};
 
+
 	unsigned int streamFilePart(File file, std::string contentType,unsigned long start,unsigned long stop) {
 		println(std::string()+RF("CurWebServerEsp8266::streamFilePart: sending ")+to_string(start)+" - "+to_string(stop));
 		println(std::string()+RF("CurWebServerEsp8266::streamFilePart: content type ")+contentType);
+
 		if(!stop) stop=file.size();
 
 		int n=CHUNKSIZE;

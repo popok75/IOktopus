@@ -27,7 +27,7 @@ public:
 
 	virtual void start(){};
 
-	void yield(){server.handleClient();};
+	virtual void yield(){server.handleClient();};
 };
 
 

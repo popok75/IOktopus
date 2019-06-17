@@ -43,7 +43,7 @@ public:
 	// for ESP8266 one process only, hold is no good, we use hold and come back every tick to check if the result changed
 	bool sensorTick(){	// read temp, then hum
 		//	Serial.println("HTU sensorTick");
-		float dewpoint;
+		float dewpoint=-1;
 		bool b=readSensor();
 		uint32_t now=millis();
 		//unsigned int timeout=4000;
@@ -88,7 +88,7 @@ public:
 		readerror=false;
 	 		if(!readingtemp2 && !readinghum2){
  			byte e;
-			if(e=sht->meas(TEMP, &rawData, NONBLOCK)) {	Serial.println(RF("Error reading temperature"));logError(e);readerror=true;return false;};
+			if((e=sht->meas(TEMP, &rawData, NONBLOCK))) {	Serial.println(RF("Error reading temperature"));logError(e);readerror=true;return false;};
  			readingtemp2=true;
 			reqts=millis();
 		}
@@ -96,7 +96,7 @@ public:
 	 		readingtemp2=false;
 			temp=sht->calcTemp(rawData);
 			byte e;
-			if(e=sht->meas(HUMI, &rawData, NONBLOCK)) {Serial.println(RF("Error reading humidity"));logError(e);readerror=true;return false;};
+			if((e=sht->meas(HUMI, &rawData, NONBLOCK))) {Serial.println(RF("Error reading humidity"));logError(e);readerror=true;return false;};
 			readinghum2=true;
 		}
 		if(readinghum2 && sht->measRdy()){

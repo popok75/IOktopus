@@ -12,7 +12,7 @@
 #define JSONDQ false
 #define JSONMILLIS false
 
-#define NODESPATH "/nodes/"
+#define LOGNODESPATH "/nodes/"
 #define VALKEYWORD "val"
 #define TSKEYWORD "ts"
 
@@ -77,6 +77,7 @@ class IOLoggerv016: public IOLoggerGen
 
 	bool notify(GenString command,Event *event){
 		if(command==RF(MODELUPDATEDEVENT)){
+//			println("IOLoggerv016::notify MODELUPDATEDEVENT");
 			StringMapEvent *evmap=0;
 			if(event->getClassType()==StringMapEventTYPE) evmap=(StringMapEvent*)(event);
 			if(!evmap) return false;
@@ -86,15 +87,15 @@ class IOLoggerv016: public IOLoggerGen
 			std::vector<GenString> loaded ;
 			// extract first var name
 				// see if we have a val and ts -> save
-			GenString nodespath=RF(NODESPATH);
+			GenString nodespath=RF(LOGNODESPATH);
 			for(auto it : evmap->values){
 				GenString key=it.key();
 				GenString vname=getPathBranch(key).erase(0,nodespath.size());
 				bool newvar=true;
 				for(GenString ls : loaded) if(ls==vname) {newvar=false;break;}
 				if(!newvar) continue;
-				println(GenString()+key);
-				println(GenString()+vname);
+				//println(GenString()+key);
+				//println(GenString()+vname);
 				GenString valstr=evmap->values.get(nodespath+vname+'/'+RF(VALKEYWORD));
 				if(valstr.empty()) continue;
 				GenString tsstr=evmap->values.get(nodespath+vname+'/'+RF(TSKEYWORD));

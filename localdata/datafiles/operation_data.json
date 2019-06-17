@@ -1,0 +1,28 @@
+{
+"operations":
+{
+"MaxHumidity":{	// stop relay if humidity > 85
+	"active": "1",
+	"lefthand":"/nodes/Humidity-IN/value",
+	"operator": "greaterorequal{less}",
+	"righthand":"85",
+	"dst":["/nodes/Relay1/value"],	// if first, it get the 0
+	"class": "Comparator"
+},
+"MinHumidity":{	// start relay if humidity < 75
+	"active": "1",
+	"lefthand":"/nodes/Humidity-IN/value",
+	"operator": "less{greaterorequal}",
+	"righthand":"75",
+	"dst":["","/nodes/Relay1/value"], 	// if second, it get the 1
+	"class": "Comparator",
+},
+"Timer":{
+	"class": "Timer",
+	"cyc":"1",
+	"dur":["10","15","5","10"],
+	"src":["1","0","1","1"],
+	"dst":["/nodes/Relay2/value","/nodes/Relay2/value","/nodes/Relay3/value","/nodes/Relay3/value"]
+}
+}
+}

@@ -11,7 +11,7 @@
 #define MINFIELD "minval"
 #define MAXFIELD "maxval"
 */
-#define VALUEFIELD RF("val")
+#define VALUEFIELD "val"
 #define TSFIELD RF("ts")
 #define MINFIELD RF("minval")
 #define MAXFIELD RF("maxval")
@@ -20,12 +20,30 @@
 #define	UPDATEMODEL RF("updateModel")
 #define	SLASH RF("/")
 
-class IODataGen : public EventListener, public DefaultEventEmitter
+
+
+class IODataGen : public EventListener, public TimerAsyncEmitter
 {
 protected:
 	GenTreeMap data;	// devices should be addressed at /devices/ as if part of the data
 public:
 	virtual ~IODataGen(){};
+
+ 	virtual bool update(GenString path, GenMap map)=0;	//can we use reference instead without ambiguous
+ 	virtual bool updateVal(GenString path, GenString val, bool notifychange=true)=0;
+ 	virtual GenString get(GenString path)=0;
+
+ 	virtual GenString getAsJson()=0;
+
+ 	virtual bool notify(GenString ename,Event*event=0)=0;
+
+ };
+
+class IODataGenDummy : public IODataGen
+{
+protected:
+	GenTreeMap data;	// devices should be addressed at /devices/ as if part of the data
+public:
 
  	virtual bool update(GenString path, GenMap map){return false;};	//can we use reference instead without ambiguous
  	bool updateVal(GenString path, GenString val){return false;}

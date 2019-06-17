@@ -6,9 +6,10 @@
 CurFS CURFS;
 #endif
 
-#ifdef ES8266BUILD
-#include "esp/CurFSEsp8266.h"
 
+#ifdef ESP8266BUILD
+#include "CompatPrint.h"
+#include "esp/CurFSEsp8266.h"
 #endif
 
 

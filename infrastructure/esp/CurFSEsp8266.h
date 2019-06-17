@@ -26,7 +26,7 @@ const char slash[] PROGMEM ={"/"};
 const char rn[] PROGMEM ={"\r\n"};
 const char rC[] PROGMEM ={"r"};
 const char errtxt[] PROGMEM={"readFileBuffer Error: could not open file %s\n"};
-*/
+ */
 
 
 
@@ -37,29 +37,48 @@ public:
 	CurFS(){ SPIFFS.begin();};
 	bool exists(std::string path){return SPIFFS.exists(path.c_str());};
 	unsigned long fileSize(std::string path){
-		if(exists(path)) {
-/*			File f = SPIFFS.open(path.c_str(), String(rC).c_str());
-			if (!f) {
-				unsigned long s = f.size();
-				f.close();
-				return s;
-			}else return 0;*/
-		}
-		else return 0;
+		File f = SPIFFS.open(path.c_str(), "r");
+		if (!f) { println(std::string()+RF("CurFS::fileSize Error: could not open file ")+path.c_str()); return 0; }
+		unsigned long sz=f.size();
+		f.close();
+		return sz;
 	};
+
+
 
 	void printFiles(){
 		// list all files
-/*		String str;
- 		Dir dir = SPIFFS.openDir(String(slash));
+		String str;
+		Dir dir = SPIFFS.openDir(String("/"));
 		while (dir.next()) {
 			str += dir.fileName();
- 			str +=  String(slash);
- 			str += dir.fileSize();
- 			str += String(rn);
+			str +=  "/";
+			str += dir.fileSize();
+			str += "\r\n";
 		}
-		Serial.println(str);*/
+		Serial.println(str);
 	};
+
+	void eraseAllFiles(){
+		// list all files
+		String str;
+		Dir dir = SPIFFS.openDir(String("/"));
+		while (dir.next()) {
+			str += dir.fileName();
+			str += "\n";
+		}
+		//Serial.println(str);
+		// erase the list
+		unsigned i=str.indexOf("\n"),ip=0;
+		while (i<str.length()){
+			String filename=str.substring(ip,i);
+			//	erase(filename);
+			Serial.println(RF("Erasing file :")+filename);
+			ip=i+1;
+			i=str.indexOf("\n",i+1);
+		}
+	};
+
 
 	///////////////////////////////
 	std::vector<FileFS> listFiles(std::string path0, std::string filenamebase){
@@ -153,7 +172,7 @@ public:
 
 
 	unsigned int rewriteFile(std::string path, std::vector<unsigned char> vect) {
-		rewriteFile(path,vect.data(),vect.size());
+		return rewriteFile(path,vect.data(),vect.size());
 	}
 
 	FileFS* openFile(std::string path){
@@ -162,11 +181,13 @@ public:
 
 		return new CurFileFS(path,f.size(),f);
 	};
+
 	void closeFile(FileFS* ffs){
 		CurFileFS *cffs=(CurFileFS*) ffs;
 		cffs->fileptr.close();
 		delete cffs;
 	};
+
 	unsigned long readFile(unsigned char *r,unsigned long size,FileFS* ffs){
 		CurFileFS *cffs=(CurFileFS*) ffs;
 		//		long pos = ftell(cffs->fileptr);
@@ -176,10 +197,12 @@ public:
 		//		println("readFile: post reading at pos:"+to_string(pos));
 		return res;
 	};
+
 	void seekFile(unsigned long pos, FileFS* ffs){
 		CurFileFS *cffs=(CurFileFS*) ffs;
 		cffs->fileptr.seek(pos,SeekSet);
 	};
+
 	unsigned char* readFileBuffer(std::string path,size_t &size){
 		File f = SPIFFS.open(path.c_str(), "r");
 		if (!f) { println(std::string()+RF("readFileBuffer Error: could not open file %s\n")+path.c_str()); return 0; }
@@ -189,33 +212,46 @@ public:
 		f.close();
 		return buffer;
 	};
+
 	std::string readFileToString(std::string path,size_t &size){
-			File f = SPIFFS.open(path.c_str(), "r");
-			if (!f) { println(std::string()+RF("readFileBuffer Error: could not open file %s\n")+path.c_str()); return std::string(); }
-			unsigned char * buffer = new unsigned char[f.size()];
-			size= f.readBytes((char *)buffer, f.size());
-			println(std::string()+ RF("reading ")+to_string(size));
-			f.close();
-			std::string str((const char *)buffer);
-			delete buffer;
-			return str;
-		};
-	void printFile(std::string path,size_t &size, unsigned int blocksize=128){
-				File f = SPIFFS.open(path.c_str(), "r");
-				if (!f) { println(std::string()+RF("readFileBuffer Error: could not open file %s\n")+path.c_str()); return ; }
-				int sz=f.size();
-				size=0;
-				unsigned char * buffer = new unsigned char[blocksize+1];
-				while(sz>0){
-					if(sz<blocksize) blocksize=sz;
-					size= f.readBytes((char *)buffer, blocksize);
-					buffer[blocksize]=0;
-					Serial.print(String((char *)buffer));
-					sz-=blocksize;
-				}
-				f.close();
-				return;
+		File f = SPIFFS.open(path.c_str(), "r");
+		if (!f) { println(std::string()+RF("readFileBuffer Error: could not open file %s\n")+path.c_str()); return std::string(); }
+		unsigned char * buffer = new unsigned char[f.size()];
+		size= f.readBytes((char *)buffer, f.size());
+		println(std::string()+ RF("reading ")+to_string(size));
+		f.close();
+		std::string str((const char *)buffer);
+		delete buffer;
+		return str;
 	};
+
+	void printFile(std::string path,size_t &size, int blocksize=128){
+		File f = SPIFFS.open(path.c_str(), "r");
+		if (!f) { println(std::string()+RF("readFileBuffer Error: could not open file %s\n")+path.c_str()); return ; }
+		int sz=f.size();
+		size=0;
+		unsigned char * buffer = new unsigned char[blocksize+1];
+		while(sz>0){
+			if(sz<blocksize) blocksize=sz;
+			size= f.readBytes((char *)buffer, blocksize);
+			buffer[blocksize]=0;
+			Serial.print(String((char *)buffer));
+			sz-=blocksize;
+		}
+		f.close();
+		return;
+	};
+	/*
+	void printFileContent(std::string path){
+			File dataFile = SPIFFS.open(path.c_str(), "r");   //Ouverture fichier pour le lire
+			Serial.println("Lecture du fichier en cours:");
+			if(dataFile){
+				//Affichage des données du fichier
+				for(int i=0;i<dataFile.size();i++)
+					Serial.print((char)dataFile.read());    //Read file
+			} else Serial.println("Could not open file for read");
+			dataFile.close();
+		}*/
 } CURFS; //684 static mem, i guess its spiffs.begin()
 
 

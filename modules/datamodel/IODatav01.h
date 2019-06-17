@@ -45,18 +45,18 @@ public:
 
 
 	bool updateMinMax(GenString path, GenString val){
-			if(!isDigit(val)) return false;
-			bool b=false;
-			GenString omin=data.get(path+SLASH+MINFIELD);
-			GenString omax=data.get(path+SLASH+MAXFIELD);
-			GenString min=getMin(omin,val);
-			GenString max=getMax(omax,val);
-//			println("Omin:"+omin);
-//			println("Omax:"+omax);
-			if(min!=omin) {data.updateVal(path+SLASH+MINFIELD,min);b=true;}	// should trigger a notification at some point
-			if(max!=omax) {data.updateVal(path+SLASH+MAXFIELD,max);b=true;}
-			return b;
-		}
+		if(!isDigit(val)) return false;
+		bool b=false;
+		GenString omin=data.get(path+SLASH+MINFIELD);
+		GenString omax=data.get(path+SLASH+MAXFIELD);
+		GenString min=getMin(omin,val);
+		GenString max=getMax(omax,val);
+		//			println("Omin:"+omin);
+		//			println("Omax:"+omax);
+		if(min!=omin) {data.updateVal(path+SLASH+MINFIELD,min);b=true;}	// should trigger a notification at some point
+		if(max!=omax) {data.updateVal(path+SLASH+MAXFIELD,max);b=true;}
+		return b;
+	}
 
 	virtual GenString get(GenString path){
 		return data.get(path);
@@ -74,29 +74,27 @@ public:
 
 		if(ename==UPDATEMODEL){
 
-	//		println("IODatav01:notify");
+			//	println("IODatav01:notify UPDATEMODEL");
 			StringMapEvent *emap=0;
-			 if(event->getClassType()==StringMapEventTYPE) emap=(StringMapEvent*)(event);//should check type before casting
+			if(event->getClassType()==StringMapEventTYPE) emap=(StringMapEvent*)(event);//should check type before casting
 			if(!emap || emap->values.empty()) return false; //pb
-		//	auto it=emap->values.begin();
+			//	auto it=emap->values.begin();
 			//for(;!it.isEnd();it++){
-
-			for(GenMap::Iterator it=emap->values.begin();
-					!it.isEnd();
-					it++)
-				{
+			for(GenMap::Iterator it=emap->values.begin();!it.isEnd();it++) {
 				updateVal(it.key(),it.value(),false);
-				}
+			}
 			//should emit one change
 			emit(MODELUPDATED, emap);
 			//println("IODatav01:notify :"+ename+" "+cell.key+" "+cell.value);
 			println(GenString()+RF("updated model to:")+getAsJson());
 
- 			return true;
+			return true;
 		}
 
 		return false;
 	};
+
+	GenString getAsJson(){return data.getAsJson();}
 };
 
 #endif

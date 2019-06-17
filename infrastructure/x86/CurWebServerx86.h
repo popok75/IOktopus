@@ -28,6 +28,8 @@ public:
 
 	void collectHeaders(const char **headers,size_t length){} //all headers are always collected
 
+	void setMdnsName(std::string str){}	// not implemented
+
 	void begin();
 	void run();
 

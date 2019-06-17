@@ -12,7 +12,7 @@
 //#define JSONDQ false
 //#define JSONMILLIS false
 
-#define NODESPATH "/nodes/"
+#define LOGNODESPATH "/nodes/"
 #define VALKEYWORD "val"
 #define TSKEYWORD "ts"
 
@@ -91,6 +91,7 @@ public:
 
 	bool notify(GenString command, Event *event){
 		if(command==RF(MODELUPDATEDEVENT)){	// use events that has both ts and val
+//			println("IOLoggerv020::notify MODELUPDATEDEVENT");
 			StringMapEvent *evmap=0;
 			if(event->getClassType()==StringMapEventTYPE) evmap=(StringMapEvent*)(event);
 			if(!evmap) return false;
@@ -100,7 +101,7 @@ public:
 			std::vector<GenString> loaded ;
 			// extract first var name
 				// see if we have a val and ts -> save
-			GenString nodespath=RF(NODESPATH);
+			GenString nodespath=RF(LOGNODESPATH);
 			for(auto it : evmap->values){
 				GenString key=it.key();
 				GenString vname=getPathBranch(key).erase(0,nodespath.size());
@@ -162,7 +163,7 @@ public:
 		     println(GenString()+RF("logdiff:")+to_string(diff)+RF(" ")+to_string(refreshPeriodSec));
 			if((diff+1)<refreshPeriodSec) return false; // got a value too soon
 		}
-		println(GenString()+"adding data : "+cname+ " v:"+to_stringWithPrecision(dval,2)+" ts:"+to_string(ts));
+		println(GenString()+RF("IOLoggerv20: adding data : ")+cname+ " v:"+to_stringWithPrecision(dval,2)+" ts:"+to_string(ts));
 		return logdata.addData(ts,cname,dval);
 	}
 

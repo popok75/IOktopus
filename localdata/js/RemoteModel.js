@@ -122,6 +122,18 @@ class RemoteModel extends EventEmitter {
 	}
 
 
+	userChange(path,value){
+		console.log();		
+		// send a request of modification to server, if the reply is ok, 
+				// it is commited locally and then overwritten by the server model update
+
+		loadremote(this.espip+"/data"+path+"?value="+value,function(t,xhttp){
+			console.log(t);
+			
+		}.bind(this),
+		{method:"PUT",tosend:value});
+	
+	};
 
 
 	updateServerError(){

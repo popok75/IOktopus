@@ -5,9 +5,10 @@
 /////////////////////////////////
 //Remote Loading not parallel loading
 var callpile=[],callunpiling=false;
-function loadremote(addr,cb,initf){//,ret,type,rg,xhttp){
+function loadremote(addr,cb,opt){//,ret,type,rg,xhttp){
 	var xhttp = new XMLHttpRequest();
-	var it=[addr,cb,initf];//ret,type,rg,xhttp];
+	if(typeof(opt)==="function") opt={initf:opt};
+	var it=[addr,cb,opt];//ret,type,rg,xhttp];
 	callpile.push(it);
 	//	print("pileToFlash this.pile",pg);
 	if(callpile.length==1 && !callunpiling) setTimeout(unpile,500,null);
@@ -52,9 +53,13 @@ function loadRemoteNow(addr,cb,opt){	// opt :{initf:function(xhttp){}, retryCall
 		};
 	};
 	console.log("loadRemote "+addr);
-	xhttp.open("GET", addr, true);
+	var method="GET";
+	if(opt && opt.method) method=opt.method;
+	xhttp.open(method, addr, true);
 	if(opt && opt.initf) opt.initf(xhttp);
-	xhttp.send();
+	if(opt && opt.tosend) xhttp.send(opt.tosend);
+	else xhttp.send();
+	
 };
  
 

@@ -74,13 +74,21 @@ class NodeController {
 			// in group : directory
 			// in subgroup : type
 			// a node view that display : name, value, minmax if there is
-		this.nodeview= controller.view.createNode(name,directory,data["type"],data);
-		this.nodeview.subscribe("userupdate",this.react);
+		this.nodeview= controller.view.createNode(name,directory,data["type"] || data["class"] || "other",data);
+		 
+		this.controller=controller;
+		this.nodeview.subscribe("updateValue",function(event){this.react(event);}.bind(this));
+		
 	};	 
 	
 	update(nodedata){
 		this.nodeview.update(nodedata);
 	}
+	
+	react(event){
+		console.log();
+		for(var k in event)	this.controller.model.userChange(k,event[k]);
+	};
 	
 };
 

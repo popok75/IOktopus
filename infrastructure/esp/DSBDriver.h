@@ -72,7 +72,7 @@ class DSBBus {
 
 	std::vector<DeviceInfo> devices;
 
-	const int durationTemp = 300; //The frequency of temperature measurement
+	const unsigned int durationTemp = 300; //The frequency of temperature measurement
 
 	unsigned int pin;
 	OneWire oneWire;
@@ -83,7 +83,7 @@ public:
 	bool reading=false,redetect=true;bool alldisconnected=true;
 	long reqts=0; //The last measurement timestamp
 
-	const int timeout = 3000; //The frequency of temperature measurement
+	const unsigned int timeout = 3000; //The frequency of temperature measurement
 
 	DSBBus(unsigned int pin0):oneWire(pin0),DS18B20(&oneWire){
 		//	for( float &f : tempDev) f=DEVICE_DISCONNECTED_C ;	// fill with DEVICE_DISCONNECTED_C  in case of
@@ -125,7 +125,7 @@ public:
 		unsigned long now=millis();
 
 		if(!alldisconnected && (now-reqts)>timeout){
-			for(int i=0; i<devices.size(); i++){
+			for(unsigned int i=0; i<devices.size(); i++){
 				devices[i].lastvalue = DEVICE_DISCONNECTED_C; //Save the measured value to the array
 				devices[i].lastTS = now;  //Remember the last time measurement
 			}
@@ -138,7 +138,7 @@ public:
 			if(DS18B20.isConversionComplete()){
 				alldisconnected=false;
 				Serial.println(RF("conversion took : ")+String(now - reqts));
-				for(int i=0; i<devices.size(); i++){
+				for(unsigned int i=0; i<devices.size(); i++){
 					float tempC = DS18B20.getTempC( devices[i].address ); //Measuring temperature in Celsius
 					devices[i].lastTS = now;//Remember the last time measurement
 					if(tempC==DEVICE_DISCONNECTED_C) {
@@ -181,7 +181,7 @@ public:
 	void redetectSensors(){
 		DS18B20.begin();
 		unsigned int devs = DS18B20.getDeviceCount();
-		for(int i=0;i<devs; i++){
+		for(unsigned int i=0;i<devs; i++){
 			DeviceAddress devaddr;
 			if( DS18B20.getAddress(devaddr, i) ){// Search the wire for address
 				updateDevices(devaddr);
@@ -244,7 +244,7 @@ DSBBus *getDSBBus(unsigned int pin){
 bool DSBDriver::sensorTick(){	// read temp
 // 	println(RF("DSBDriver sensorTick ")+to_string((uint64_t)dsbbus));
 	//		if(dsbbus->reading) Serial.println("true");
-	long sts=dsbbus->getTimestamp(id);
+	unsigned long sts=dsbbus->getTimestamp(id);
 	if(sts==lastts){
 		if(!dsbbus->reading && (sts-lastts)<dsbbus->timeout) { //if value it has is not recent, and is not reading then tell to read
 			dsbbus->read();

@@ -1,0 +1,31 @@
+{
+"DHT22": {
+	"name":"DHT Sensor inside",
+	"pin": "D7",
+	"nodes":"Temperature-IN, Humidity-IN"
+},
+"Relay-LED": {
+	"name":"Relay or LED, simple digital write on/off",
+	"pin": "D5",
+	"nodes":"Relay1,Relay2"
+},
+/*
+"DHT22": {
+	"name":"DHT Sensor outside",
+	"pin": "6",
+	"nodes":"Temperature-OUT, Humidity-OUT"
+},
+"SHT15": {
+	"name":"SHT15 Sensor",
+	"datapin": "2",
+	"clockpin": "3",
+	"nodes":"Temperature-SHT, Humidity-SHT"
+},
+"DS18B20": {
+	"name":"DS18B20 Sensor",
+	"datapin": "2",
+	"sensorindex": "0",
+	"nodes":"Temperature-DS18"
+}
+*/
+}

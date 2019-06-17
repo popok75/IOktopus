@@ -3,7 +3,7 @@
 
 //Notes : - this file should contain only generic logdygraph
 //- code could be improved
-import {Component, ComponentFactory, TextAreaComponent, SelectComponent, DivComponent, Panel,Table,TableRow ,TableCell, TextLabel} from "./Component.js";
+import {Component } from "./Component.js";
 
 import {} from "./dygraph.min.js";	// no-copy alternative export method : the original object is exported as global only a copy is retreived with import
 //import * as syncro from "./synchronizer.js";
@@ -117,6 +117,7 @@ class LogGraphGroup {	//interface the data and the graphs
 		// create a range per variable
 		for(var i in this.groups) {
 			for(var j in this.groups[i]) {
+				if(labels.indexOf(this.groups[i][j])<0) continue;	// not found in datam, skip it
 		 		graph.addRange(this.name+graphid,this.groups[i][j], this.colorset[graphid-1]);	// add a range slider for each group
 				graphid++;			    
 			}
@@ -529,6 +530,7 @@ class LogDygraph {
 	updateRangeGraph(rangegraph,r){
 		var rangename=rangegraph.getLabels()[1];
 		var dataseries=this.getRangeSeries(rangename);
+		if(!dataseries) return;
 		var opt={ 'file': dataseries } ;
 		// keep now visible
 		var max=dataseries[dataseries.length-1][0].getTime();

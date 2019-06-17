@@ -51,8 +51,6 @@ public:
 	Pinger(){};
 
 	void doPing(const char *targetIpAddress, PingListener*listener0, int pcount=PINGCOUNT) {   // init and start Ping
-
-
 		//	Serial.println(String()+"Pinger::do ping start "+targetIpAddress);
 		struct ping_option_plus *pingOpt = &pOpt;
 		pingOpt->count = PINGCOUNT;

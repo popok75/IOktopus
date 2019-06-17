@@ -2,8 +2,10 @@
 #define WIFIMAN_H
 //#include <Ticker.h>
 
-#include "CurFSEsp8266.h"
+#define WIFIMANUSEMDNS false
 
+#include "CurFSEsp8266.h"
+#include <ESP8266mDNS.h>
 #include "../SyncedClock.h"
 
 #include "NTPSyncer.h"
@@ -18,8 +20,9 @@
 #define SSIDFIELD "wifi-ssid"
 #define APNAMEFIELD "wifi-apname"
 
+#include "../events/EventEmitter.h"
 
-
+#define GETSTATIONIP "getStationIP"
 
 class WifiMan;
 
@@ -32,8 +35,7 @@ public:
 	void ntpUpdate(uint32_t sec,bool connected1);
 };
 
-class WifiMan
-{
+class WifiMan : public EventListener {
 	NTPSyncer syncer;
 	WifiListener wifilistener;
 	Ticker wifiTicker;
@@ -66,8 +68,23 @@ public:
 	static void reconnectIfRequiredStat(WifiMan *);
 	void reconnectIfRequired();
 	void saveConfig(std::map<std::string,std::string >&config);
+	bool notify(GenString ename,Event*event=0);//{return false;};
 };
 
+
+bool WifiMan::notify(GenString ename,Event*event){
+	if(ename==RF(GETSTATIONIP)){
+		StringEvent *strev=0;
+		if(event->getClassType()==StringEventTYPE) strev = (StringEvent*)(event);
+		if(!strev) return false;
+		strev->str=WiFi.localIP().toString().c_str();
+		println(std::string()+
+						RF("Wifiman notify : ")+
+						ename+" "+strev->str);
+		return true;
+	}
+	return false;
+};
 
 void WifiListener::ntpUpdate(uint32_t sec,bool connected1){
 
@@ -101,7 +118,7 @@ void WifiMan::reconnectIfRequired(){
 		// restart AP
 		if(!reconnecting) startAP();
 		// try to connect
-		println(RF("attempt to reconnect to wifi"));
+		println(std::string()+RF("attempt to reconnect to wifi ")+ssid);
 		WiFi.disconnect(true);
 		WiFi.begin(ssid.c_str(), passwd.c_str());
 		m0=millis();
@@ -160,7 +177,7 @@ void  WifiMan::startAP(){
 bool WifiMan::initFromConfig(GenMap *config0){
 	println(RF("Connecting wifi / setup access point..."));
 	config=config0;
-	init();
+	return init();
 }
 /*
 bool WifiMan::initFromFile(std::string passfile)
@@ -184,7 +201,7 @@ bool WifiMan::initFromFile(std::string passfile)
 
  	init();
 	// sram WiFi library use
-	/*WiFi.begin(ssid.c_str(), passwd.c_str());
+	/ *WiFi.begin(ssid.c_str(), passwd.c_str());
 	WiFi.status();
 	WiFi.localIP();
 	WiFi.mode(WIFI_AP_STA);
@@ -202,15 +219,18 @@ bool WifiMan::init(std::string ssid, std::string password)
 	init();
 
 }*/
-
+GenString wifimanpasswd, wifimanssid;
 bool WifiMan::init()
 {
-	GenString passwd=(*config)[RF(PASSFIELD)];
-	GenString ssid=(*config)[RF(SSIDFIELD)];
+ //	WiFi.persistent(true);	//mDNS require this ??  : https://github.com/esp8266/Arduino/issues/1950
+
+
+	wifimanpasswd=(*config)[RF(PASSFIELD)];
+	wifimanssid=(*config)[RF(SSIDFIELD)];
 	//	GenString apname=config[RF(APNAMEFIELD)];
 
-	if(ssid.empty()) ssid=RF("noconfigfile");
-	if(passwd.empty()) passwd="";
+	if(wifimanssid.empty()) wifimanssid=RF("noconfigfile");
+	if(wifimanpasswd.empty()) wifimanpasswd="";
 
 	startAP();
 
@@ -218,11 +238,11 @@ bool WifiMan::init()
 	println(WiFi.status());
 
 
-	WiFi.begin(ssid.c_str(), passwd.c_str());
+	WiFi.begin(wifimanssid.c_str(), wifimanpasswd.c_str());
 
 
 
-	println(std::string()+RF("Connecting to wifi ssid : '")+ssid.c_str()+RF("'"));
+	println(std::string()+RF("Connecting to wifi ssid : '")+wifimanssid.c_str()+RF("'"));
 	m0=millis();
 	print(RF("Connecting "));
 
@@ -235,21 +255,28 @@ bool WifiMan::init()
 	}
 	bool retry=true;
 	if(WiFi.status() == WL_CONNECTED){
-		println(std::string()+RF("connected to wifi in ")+to_string(millis()-m0)+RF("ms"));
+		println(std::string()+RF("connected to wifi ")+wifimanssid+RF(" in ")+to_string(millis()-m0)+RF("ms"));
 		print(RF("IP Address is: "));
 		println(WiFi.localIP());
 		stopAP();
-			println("pinger started");
+#if WIFIMANUSEMDNS
+		delay(1000);
+		println(RF("mnds starting now for myesp8266.local: "));
+	 //	MDNS.begin("myesp8266");
+		println(RF("WifiMan mnds started"));
+		delay(1000);
+#endif
+		println("pinger starting");
 
-		syncer.pingSyncNTP(&wifilistener);
-
+	 	syncer.pingSyncNTP(&wifilistener);
+	 	println("will wait for NTP response");
 		ntpresponse=false;
 		while(!ntpresponse) delay(100);
 		ntpresponse=false;
 		synced=true;
 
 	} else{
-		println(GenString() + RF("Failed to connect to wifi ssid :")+ssid+" with password '"+passwd+"'");
+		println(GenString() + RF("Failed to connect to wifi ssid :")+wifimanssid+" with password '"+wifimanpasswd+"'");
 		if(WiFi.status() ==WL_IDLE_STATUS) println(RF("ssid not detected"));	//could stop STA here and restart every while (how long?) to see if ssid is back
 		if(WiFi.status() ==WL_CONNECT_FAILED) {println(RF("password rejected"));retry=false;}//could stop STA here until next change of password or next retry after timeout
 	}

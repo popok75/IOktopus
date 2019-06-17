@@ -1,0 +1,12 @@
+// no bundle version
+/filelist.txt|http://192.168.2.4:8080/data/filelist.txt
+
+/favicon.png|http://192.168.2.4:8080/data/favicon.png
+/favicon.ico.gz|http://192.168.2.4:8080/data/favicon.ico.gz
+/foghorn.mp3|http://192.168.2.4:8080/data/foghorn.mp3
+/bell.mp3|http://192.168.2.4:8080/data/bell.mp3
+
+/edit.html.gz|http://192.168.2.4:8080/data/edit.html.gz
+
+/js/ui/dygraph.min.js|http://192.168.2.4:8080/data/js/ui/dygraph.min.js
+

@@ -3,11 +3,18 @@
 
 
 #ifdef x86BUILD
+
 #define CurWebServer CurWebServerx86
 #include "x86/CurWebServerx86.h"
+
+#define CurWebClient CurWebClientx86
+#include "x86/CurWebClientx86.h"
+
 #include "SyncedClock.h"
 
-class WifiMan{public:
+class WifiMan : public EventListener {
+public:
+	bool notify(std::string, Event*){return false;};
 	static void initFromConfig(GenMap *config){
 		CLOCK32.resyncSec(millis64()/1000);
 	};
@@ -16,6 +23,11 @@ class WifiMan{public:
 	static void stopAP(){};
 	static void reconnectIfRequired(){};
 };
+
+
+
+
+
 #endif
 
 
@@ -23,6 +35,10 @@ class WifiMan{public:
 #define CurWebServer CurWebServerEsp8266
 #include "esp/WifiMan.h"
 #include "esp/CurWebServerEsp8266.h"
+
+#define CurWebClient CurWebClientEsp8266
+#include "esp/CurWebClientEsp8266.h"
+
 #endif
 
 

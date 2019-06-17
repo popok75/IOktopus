@@ -31,7 +31,7 @@ char smcintrapair='\t';
 char smcinterpair='\n';
 StringType smcintrapairunescaped=RF("\t"),smcintrapairescaped=RF("\\t");
 StringType smcinterpairunescaped=RF("\n"),smcinterpairescaped=RF("\\n");
-*/
+ */
 #define smcintrapair '\t'
 #define smcinterpair '\n'
 #define smcintrapairunescaped GenString(RF("\t"))
@@ -82,14 +82,15 @@ public:
 		if(!multimap){
 			unsigned int i=nextKey(key),ds=data.size();
 			if(i<ds){	// update content of key
-					unsigned j=nextKey(i+1)+key.size()+1; // ??? debug here
-					data.erase(i,j-i);
-					data.insert(i,value);
-					return true;
+				unsigned j=nextKey(i+1)+key.size()+1; // ??? debug here
+				data.erase(i,j-i);
+				data.insert(i,value);
+				return true;
 			}
 		}
-		data+=key+smcintrapair+value+smcinterpair;
-		keys++;
+
+		data+=key+smcintrapair+value+smcinterpair;keys++;
+
 		return true;
 	}
 
@@ -125,11 +126,15 @@ public:
 	};
 
 	StringType get(StringType key){
+		GenString sub;
 		if(!fastescapekey) escape(key);
+
 		unsigned int i=nextKey(key);
+
+	//	unsigned int s=key.size();
 		if(i<data.size()) {
 			i+=key.size()+1;
-			unsigned int j=nextKey(i+1)-1;
+			unsigned int j=nextKey(i)-1;	// it was i+1 before, not working for 0 length value
 			StringType value= data.substr(i,j-i);
 			if(!fastescapevalue) unescape(value);
 			return value;
@@ -142,19 +147,19 @@ public:
 		if(!fastescapekey) escape(key);
 		unsigned int i=nextKey(key);
 		while(i<data.size()) {
-			i+=key.size()+1;
-			unsigned int j=nextKey(i+1);
+			//unsigned int ks=i+key.size()+1;
+			unsigned int j=nextKey(i+key.size()+1);
 			data.erase(i,j-i);
 			keys--;
-			i=nextKey(key,i);
 			ret=true;
 			if(!multimap) break;
+			i=nextKey(key,i);	// next occurrent in multimap
 		}
 		return ret;
 	}
 
 	bool erase(StringType key, StringType value){	// there is no erase taking place here ??!!??
-	//	bool ret=false;
+		//	bool ret=false;
 		if(!fastescapekey) escape(key);
 		if(!fastescapekey) escape(value);
 
@@ -167,7 +172,7 @@ public:
 	}
 
 	bool replace(unsigned int i,StringType nkey, StringType nvalue){
-	//	bool ret=false;
+		//	bool ret=false;
 		if(!fastescapekey) {escape(nkey);}
 		if(!fastescapevalue) {escape(nvalue);}
 
@@ -181,7 +186,7 @@ public:
 	}
 
 	bool replace(StringType key, StringType value,StringType nkey, StringType nvalue){
-	//	bool ret=false;
+		//	bool ret=false;
 		if(!fastescapekey) {escape(key);escape(nkey);}
 		if(!fastescapevalue) {escape(value);escape(nvalue);}
 
@@ -193,8 +198,8 @@ public:
 		else return false;
 	}
 
-	//	inline bool hasKey(StringType &key) {return nextKey(key)<data.size();};
-	//	inline bool hasValue(StringType &value) {return nextValue(value)<data.size();};
+	 	inline bool hasKey(StringType &key) {return nextKey(key)<data.size();};
+		inline bool hasValue(StringType &value) {return nextValue(value)<data.size();};
 	//	StringType toString(){return data;}
 
 	inline bool escape(StringType &key){

@@ -1,6 +1,8 @@
 #ifndef COMPATCRASH_H
 #define COMPATCRASH_H
 
+
+
 #ifdef x86BUILD
 
 #define CRASHFILEPATH "crashdump.txt"
@@ -20,6 +22,8 @@ public:
 
 
 #ifdef ESP8266BUILD
+
+#include "CompatFS.h"
 
 #define ESPSAVECRASH_LIB
 #ifdef ESPSAVECRASH_LIB

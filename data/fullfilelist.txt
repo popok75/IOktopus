@@ -1,0 +1,28 @@
+// no bundle version
+/filelist.txt|http://192.168.2.4:8080/data/filelist.txt
+
+/favicon.png|http://192.168.2.4:8080/data/favicon.png
+/favicon.ico.gz|http://192.168.2.4:8080/data/favicon.ico.gz
+/foghorn.mp3|http://192.168.2.4:8080/data/foghorn.mp3
+/bell.mp3|http://192.168.2.4:8080/data/bell.mp3
+
+/edit.html.gz|http://192.168.2.4:8080/data/edit.html.gz
+
+/js/IOktopusClient.js|http://192.168.2.4:8080/data/js/IOktopusClient.js
+/js/globalexport.js|http://192.168.2.4:8080/data/js/globalexport.js
+/js/loadremote.js|http://192.168.2.4:8080/data/js/loadremote.js
+/js/RemoteModel.js|http://192.168.2.4:8080/data/js/RemoteModel.js
+/js/Controller.js|http://192.168.2.4:8080/data/js/Controller.js
+/js/EventEmitter.js|http://192.168.2.4:8080/data/js/EventEmitter.js
+
+/js/ui/dygraph.min.js|http://192.168.2.4:8080/data/js/ui/dygraph.min.js
+/js/ui/LogDygraph.js|http://192.168.2.4:8080/data/js/ui/LogDygraph.js
+/js/ui/interaction.js|http://192.168.2.4:8080/data/js/ui/interaction.js
+/js/ui/synchronizer.js|http://192.168.2.4:8080/data/js/ui/synchronizer.js
+/js/ui/UserView.js|http://192.168.2.4:8080/data/js/ui/UserView.js
+/js/ui/Component.js|http://192.168.2.4:8080/data/js/ui/Component.js
+
+// server will use the following file after reboot
+/config.txt|http://192.168.2.4:8080/data/config.txt
+// client will stop seeing rescue page after next file and reboot
+/index.html.gz|http://192.168.2.4:8080/data/index.html.gz

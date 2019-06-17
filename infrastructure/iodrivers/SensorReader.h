@@ -132,7 +132,7 @@ bool SensorReader::read(){
 	if(ticker2.ts) println(GenString()+"SensorReader::read ticker2 id : "+to_string( (ticker2.ts->id)));
 */	if(!reading) {//println("!reading");
 		reqms=millis();
-		ticker2.attach_ms(tickms, readtick, this);
+		ticker2.attach_ms(tickms, readtick, this);	// should get the tick ms from the driver or else work always full speed
 	//	println(GenString()+"ticker2 attached "+to_string(tickms));
 		reading=true;
 		return true;

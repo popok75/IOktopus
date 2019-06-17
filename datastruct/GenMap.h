@@ -377,7 +377,8 @@ public:
 		GenString str=this->getNextValueForKey(key,index);
 		return str;
 	};
-	bool has(GenString key){unsigned int index=0;return !this->getNextValueForKey(key,index).empty();};
+	bool has(GenString key){	return hasKey(key);}
+		//unsigned int index=0;return !this->getNextValueForKey(key,index).empty();}; //this doesnt work for empty values
 
 	class SSIteratorConnector : public IteratorConnector {
 			unsigned int index=0;

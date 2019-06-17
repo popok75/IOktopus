@@ -4,25 +4,26 @@
 #define EventTYPE 0
 
 class Event{
-	virtual Event* getCopy(){return new Event();};
 public:
+	virtual ~Event(){};
+	virtual Event* getCopy(){return new Event();};
 	virtual unsigned int getClassType(){return EventTYPE;}
 };
 
-
+#include "../../datastruct/GenString.h"
 
 #define StringEventTYPE 1
 class StringEvent:public Event {
-	virtual Event* getCopy(){return new StringEvent(str);};
 public:
+	virtual Event* getCopy(){return new StringEvent(str);};
 	GenString str;
 	StringEvent(GenString str0=""):str(str0){};
 	virtual unsigned int getClassType(){return StringEventTYPE;}
 };
 #define MultipartStringEventTYPE 4
 class MultipartStringEvent : public StringEvent {
-	virtual Event* getCopy(){return new MultipartStringEvent(maxsize,index, str);};
 public:
+	virtual Event* getCopy(){return new MultipartStringEvent(maxsize,index, str);};
 	unsigned int index=0;
 	unsigned long maxsize=0, totalsize=0;
 	bool tobecontinued=false;
@@ -43,7 +44,7 @@ public:
 
 
 class CallbackEvent :public Event{
-
+public:
 	virtual Event* getCopy(){return new CallbackEvent();};
 	virtual void callback(void*arg){};
 };

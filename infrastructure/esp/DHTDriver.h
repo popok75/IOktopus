@@ -1,6 +1,7 @@
 #ifndef DHTREADER_H
 #define DHTREADER_H
 
+#define DHTDEBUG 3
 
 #include "../iodrivers/SensorDriver.h"
 
@@ -20,9 +21,13 @@ public:
 
 	bool init() {
 		if(pins.empty()) return false;
+#if DHTDEBUG > 0
 		println(RF("DHTReader::init on pin:")+to_string(pins[0]));
+#endif
 		dhtsensor=new DHT_nonblocking(pins[0],DHT_TYPE_22); //dataPin, clockPin
+#if DHTDEBUG > 0
 		println(RF("DHTReader init with success!"));
+#endif
 	 	return true;
 	};
 
@@ -33,8 +38,10 @@ public:
 		  float humidity;
 		if(dhtsensor->measure( &temperature, &humidity ) == true)
 		{
-			Serial.println(String()+RF("DHT 22 sensor : temp= ") + String(temperature)+RF("C, humidity= ")+ String(humidity)+RF("%") );
-		 	temp=temperature;
+#if DHTDEBUG > 1
+			Serial.println(String()+RF("\nDHT 22 sensor : temp= ") + String(temperature)+RF("C, humidity= ")+ String(humidity)+RF("%") );
+#endif
+			temp=temperature;
 			hum=humidity;
 			disconnected=false;
 			//	print("Free heap sensor end :");	println(ESP.getFreeHeap(),DEC);

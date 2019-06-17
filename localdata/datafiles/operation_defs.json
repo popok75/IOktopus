@@ -1,0 +1,20 @@
+{"operations":
+{
+"Operation": {
+	"vars":{"active":"0"}	// vars : variables to create and subscribe to
+},
+"Comparator":{
+	"actions":["compare","selectassign"], // actions : actions to create 
+	"init": {"channel":"./conditionmet","src":["0","1"]}	// init: variable values to initialize without subscribing
+	//here we use a path to a local var, each var can contain a constant or a path to another var
+},
+"Timer":{
+	"actions":["clocktrigger","selectassign"],
+	"init": {"channel":"./step", "startstop":"./active"}	// another local path
+},
+"PsyRHCalculator":{
+	"actions":["calculate[3]"],
+	"init": {"subclass":"psyRH"}
+}
+}
+}
