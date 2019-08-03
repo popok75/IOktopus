@@ -1,14 +1,15 @@
 #ifndef PSYCHRODRIVER_H
 #define PSYCHRODRIVER_H
 
-#include "SensorDriver.h"
 #include <Math.h>
+
+#include "IODriver.h"
 
 #undef FTEMPLATE
 #define FTEMPLATE ".irom.text.psychrodriver"
 
 class IOFactory;
-SensorDriver *IOFactorycreateDriver (GenString model0, unsigned int num, std::vector<unsigned int> &pins);	// definition in IOFactory.h
+IODriver *IOFactorycreateDriver (GenString model0, unsigned int num, std::vector<unsigned int> &pins);	// definition in IOFactory.h
 
 float getPsychroEstimate(float wet, float dry){
 //	float hum;
@@ -50,9 +51,9 @@ Relative Humidity:
 #undef FTEMPLATE
 #define FTEMPLATE ".irom.text.psychroreader2"
 
-class PsychroDriver : public SensorDriver
+class PsychroDriver : public IODriver
 {
-	SensorDriver *wetbulb,*drybulb=0;//= Sensirion(dataPin, clockPin);
+	IODriver *wetbulb,*drybulb=0;//= Sensirion(dataPin, clockPin);
 	//FakeHTU htu = FakeHTU();	// could use a real htu too
 	float wetval=0, dryval=0, humval=0;
 	bool waitingwet=true, waitingdry=true;
@@ -60,7 +61,7 @@ class PsychroDriver : public SensorDriver
 	unsigned int pinwet=0,pindry=0;
 	uint64_t mstimestamp=0;
 public:
-	PsychroDriver(unsigned int num, std::vector<unsigned int> pins):SensorDriver(num,pins){
+	PsychroDriver(unsigned int num, std::vector<unsigned int> pins):IODriver(num,pins){
 /*
 		wetname=RF("Temperature-Wet");
 		if(!wetname0.empty()) wetname=wetname0;
@@ -159,7 +160,7 @@ public:
 			if(!drydisconnected && !wetdisconnected) {
 				if(dryval<wetval){
 					float t=dryval;dryval=wetval;wetval=t;
-					SensorDriver *tmp=drybulb;drybulb=wetbulb;wetbulb=tmp;
+					IODriver *tmp=drybulb;drybulb=wetbulb;wetbulb=tmp;
 				}
 				humval=getPsychroEstimate(dryval,wetval);
 //				println(RF("humval updated with :")+to_stringWithPrecision(humval,2));

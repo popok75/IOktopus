@@ -8,15 +8,15 @@
 #define TEMPERATURE_CHANNEL_TYPE "Temperature"
 
 
-class SensorDriver
+class IODriver
 {
 protected:
 	unsigned int num;
 	std::vector<unsigned int> pins;
 
 public:
-	SensorDriver(unsigned int num0, std::vector<unsigned int> pins0):num(num0),pins(pins0){}
-	virtual ~SensorDriver(){};
+	IODriver(unsigned int num0, std::vector<unsigned int> pins0):num(num0),pins(pins0){}
+	virtual ~IODriver(){};
 
 	virtual bool init() {return true;};
 
@@ -33,12 +33,12 @@ public:
 
 };
 
-class TempDriver : public SensorDriver {
+class TempDriver : public IODriver {
 protected:
 	float temp;
 	bool disconnected=true;
 public:
-	TempDriver(unsigned int num0, std::vector<unsigned int> pins0):SensorDriver(num0,pins0){}
+	TempDriver(unsigned int num0, std::vector<unsigned int> pins0):IODriver(num0,pins0){}
 	virtual unsigned int channelNumber(){return 1;};
 	virtual GenString channelType(unsigned int i){if(i==0) return RF(TEMPERATURE_CHANNEL_TYPE); return "";};
 
@@ -47,12 +47,12 @@ public:
 	virtual uint64_t timestamp(unsigned int i){return 0;};
 };
 
-class TempRHDriver : public SensorDriver {
+class TempRHDriver : public IODriver {
 protected:
 	float temp, hum;
 	bool disconnected=true;
 public:
-	TempRHDriver(unsigned int num0, std::vector<unsigned int> pins0):SensorDriver(num0,pins0){}
+	TempRHDriver(unsigned int num0, std::vector<unsigned int> pins0):IODriver(num0,pins0){}
 	virtual unsigned int channelNumber(){return 2;};
 	virtual GenString channelType(unsigned int i){if(i==0) return RF("Temperature"); else if(i==1) return RF("Humidity");return "";};
 	virtual bool isConnected(unsigned int i){return !disconnected;}

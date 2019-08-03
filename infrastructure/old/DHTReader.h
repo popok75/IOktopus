@@ -2,9 +2,8 @@
 #define DHTREADER_H
 
 
-#include "../iodrivers/SensorReader.h"
-
 #include <dht_nonblocking.h>
+#include "../iodrivers/IOReader.h"
 
 #define FTEMPLATE ".irom.text.dhtreader"
 

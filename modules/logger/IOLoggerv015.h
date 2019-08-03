@@ -129,8 +129,8 @@ class IOLoggerv015: public IOLoggerGen
 			if(event->getClassType()==NamedStringMapEventTYPE) namev=(NamedStringMapEvent*)(event);
 			if(!namev) return false;
 
-			if(startsWith(namev->ename,RF("/nodes/")) && namev->values.has(RF("val"))){	//log only nodes
-				GenString strval=namev->values.get(RF("val"));
+			if(startsWith(namev->ename,RF("/nodes/")) && namev->values.has(RF("value"))){	//log only nodes
+				GenString strval=namev->values.get(RF("value"));
 				double dval=strToDouble(strval);
 				saveToLog(getPathLeaf(namev->ename),dval);
 			}

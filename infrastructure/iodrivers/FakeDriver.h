@@ -1,8 +1,9 @@
 #ifndef FAKEDRIVER_H
 #define FAKEDRIVER_H
 
-#include "SensorDriver.h"
 #include <time.h>
+
+#include "IODriver.h"
 
 #undef FTEMPLATE
 #define FTEMPLATE ".irom.text.fakedriver"

@@ -9,7 +9,7 @@
 //#include <string>
 //#include <time.h>
 
-#include "../iodrivers/SensorReader.h"
+#include "../iodrivers/IOReader.h"
 #undef FTEMPLATE
 #define FTEMPLATE ".irom.text.dsbreader"
 //#define FFDSB(string_literal) (reinterpret_cast<const __FlashStringHelper *>(((__extension__({static const char __c[] __attribute__((section(".irom.text.dsbreader"))) = ((string_literal)); &__c[0];})))))

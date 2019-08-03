@@ -1,8 +1,9 @@
 #ifndef PSYCHROREADER_H
 #define PSYCHROREADER_H
 
-#include "SensorReader.h"
 #include <Math.h>
+
+#include "../iodrivers/IOReader.h"
 
 #undef FTEMPLATE
 #define FTEMPLATE ".irom.text.psychroreader"

@@ -153,7 +153,7 @@ void setup(){
 
 	// this init data is now created by the device from config file
 	// create a map with init data	// add it to model
-	//	GenMap map={{"type","input"}, {"unit","\%"}, {"val","--"}};GenString path="/nodes/Humidity";
+	//	GenMap map={{"type","input"}, {"unit","\%"}, {"value","--"}};GenString path="/nodes/Humidity";
 	//	iodata->update(path, map);	GenString jsonstr=iodata->getAsJson();
 
 	// create server// develop client done
@@ -161,6 +161,7 @@ void setup(){
 
 	//	ioserver->setIOData(iodata); // classic way to do the stuff, bad because creates dependency between server and data
 	ioserver->on("getAsJson",iodata); // instead we set iodata to be called on getAsJson event fired by the server (we use sync event to get the result back immediately)
+	ioserver->on("updateModel",iodata);	// also if use modify the data through the server, we need to notify
 	ioserver->on("getStationIP",&wifiman);	// server will fire getStationIP toward wifiman in order to include in backup page
 //	println("ioktopus starting ioserver");
 	ioserver->start();

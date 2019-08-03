@@ -60,6 +60,9 @@ unsigned webserver::Request(void* ptr_s) {
   else if (line.find("POST") == 0) {
 	  startpos=4;
     req.method_="POST";
+  } else if(line.find("PUT") == 0) {
+	  req.method_="PUT";
+	  std::cout << line<< std::endl;
   }
 
   std::string path;
@@ -121,7 +124,7 @@ unsigned webserver::Request(void* ptr_s) {
 
   }
 
-  if(startpos==4) {
+  if(req.method_=="POST" || req.method_=="PUT") { //startpos==4) {
 	  req.requestContent=std::string("X?");
 	  while(1) {
 	     line=s.ReceiveBytes();

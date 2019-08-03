@@ -5,6 +5,8 @@ import {Component, ComponentFactory, TextInputComponent, SelectComponent, DivCom
 
 import {LogGraphGroup } from "./LogDygraph.js";
 
+import {GenericNodeView} from "./NodeView.js";
+
 var geid=document.getElementById.bind(document);
 var lightgray="#BBBBBB";
 
@@ -64,7 +66,7 @@ class UserView extends EventEmitter {
 
 		if(!this.logview) {
 			this.logview= new LogGraphicView(data,labels,nodes);	
-			this.panel.addComponent(this.logview.getComponent());
+			//this.panel.addComponent(this.logview.getComponent());
 			var loghtml=this.logview.getComponent().getHtml();	
 			geid('loginterface').innerHTML=loghtml;	//should not be added like that
 			this.logview.init();
@@ -77,19 +79,30 @@ class UserView extends EventEmitter {
 	}
 
 	
+	notifyConfirm(event){
+		console.log(event);
+	}
+	notifyCancel(event){
+		console.log(event);
+	}
+	
 	update(){
 
 	}
 };
 
-
+/*
 class Formatter {
 	constructor(){
-		this.symbols={"greaterorequal":">=","less":"<"};
+		/*this.symbols={"greaterorequal":">=","less":"<"};
 		this.symbolsnamepattern=["operator"];
 		this.boolnamepattern=["active","cyc","conditionmet"];
-		this.timestampnamepattern=["ts"];
-
+		this.timestampnamepattern=["ts"];* /
+		var ggd=globalThis.globaldefs.data;
+		this.symbols=ggd.valueformat.symbols;
+		this.symbolsnamepattern=ggd.fieldformat.symbols;
+		this.boolnamepattern=ggd.fieldformat.boolnamepattern;
+		this.timestampnamepattern=ggd.fieldformat.timestampnamepattern;
 
 	};
 
@@ -341,26 +354,18 @@ class VarView extends Component {
 
 
 
-class NodeFormatter{
+class NodeFormatter{	
 	static getOrder(ddata){
-
-		var byclassfullorder={
-				"input":{main:["value","min", "max"],detail:[ "ts"]},
-				"Comparator":{main:["active","lefthand", "operator", "righthand","conditionmet"],detail:["src","dst"]},
-				"Timer":{main:["active","step", "cyc", "dur"],detail:[,"src", "dst","ts0"]}
-		}
-
-		// use class order first  <<<----
-
-		var overview=["active", "val"];
-		var detail=["min","max"];
-		var superdetail=["class","type","unit"];
-		var seq={"src":"dst"};	// fields that must appear in sequence
-
+		var ggd=globalThis.globaldefs.data;
+		var byclassfullorder=ggd.byclassfullorder;
+		var byfieldorder=ggd.byfieldorder;
+		var seq=byfieldorder.seq;
+		var classfield=ggd.classfield;
+		var typefield=ggd.typefield;
+		
 		var before=[],after=[],superafter=[], final=[];
 
 		console.log(ddata);
-
 
 		function finditin(item,tab){
 			for(var k in tab) {
@@ -373,8 +378,8 @@ class NodeFormatter{
 			return false;
 		}
 		var type;
-		if("class" in ddata) type=ddata["class"];
-		if("type" in ddata) type=ddata["type"];
+		if(classfield in ddata) type=ddata[classfield];
+		if(typefield in ddata) type=ddata[typefield];
 		var bcfo=byclassfullorder[type];
 		if(type && bcfo){	
 			for(var k in bcfo.main) if(bcfo.main[k] in ddata) final.push(bcfo.main[k]);
@@ -383,14 +388,14 @@ class NodeFormatter{
 
 		for(var it in ddata) {
 			if(finditin(it,final) || finditin(it,after)) continue;
-			if(finditin(it,overview)) {before.push(it);continue;}
+			if(finditin(it,byfieldorder.overview)) {before.push(it);continue;}
 			if(ddata[it].substring && ddata[it].substring(0,2)=="./") {
 				after.push(it);
 				continue;}
-			if(finditin(it,detail)) {after.push(it);continue;}
-			if(finditin(it,superdetail)) {superafter.push(it);continue;}
+			if(finditin(it,byfieldorder.detail)) {after.push(it);continue;}
+			if(finditin(it,byfieldorder.superdetail)) {superafter.push(it);continue;}
 
-			if(!findinseq(it)) final.push(it);
+			if(!findinseq(it)) final.push(it);						// if field name not known, add it to main list
 			if(it in seq && seq[it] in ddata) final.push(seq[it]);
 		}
 //		before=before.concat(final);
@@ -400,11 +405,12 @@ class NodeFormatter{
 	};
 };
 
+
 class ArrowButtons extends Component {
 	constructor(name,data){
 		super();
 
-		this.order=NodeFormatter.getOrder(data);	
+		this.order=this.getOrder(data);	
 
 		this.arrowless=new TextLabel(name+"arrowless","&#9665;",{nodiv:true});
 		this.arrowmore=new TextLabel(name+"arrowmore","&#9655;\t",{nodiv:true});
@@ -464,16 +470,15 @@ class ArrowButtons extends Component {
 		this.addComponent(this.arrowmore);
 	}
 
-	getOrder(){return this.order;}
+	getOrder(data){
+		this.order=NodeFormatter.getOrder(data);
+		return this.order;}
 
 	addVarView(name,varview){
 		if(!varview) return;
 		if(!this.varviews) this.varviews={};
 		this.varviews[name]=varview;
 	}
-
-
-
 }
 
 ///////////////
@@ -493,11 +498,12 @@ class GenericNodeView extends EventEmitter {
 		var arrows=new ArrowButtons(name,data);
 		cell.addComponent(arrows);
 		cell.addComponent(namelabel);
-		var selected=arrows.getOrder();
+		var selected=arrows.getOrder(data);
 
 		var ordered=selected[0];
 		ordered=ordered.concat(selected[1]);
 		ordered=ordered.concat(selected[2]);
+		this.varviews=[];
 		for(var i in ordered){
 			var t=ordered[i];
 			var cell2=new TableCell(name+"cell"+t);
@@ -511,40 +517,23 @@ class GenericNodeView extends EventEmitter {
 			if(!selected[0].find(function(e){return t==e;})) cell2.style+="display:none;";
 
 			cell2.addComponent(varview);
+			this.varviews.push(varview);
 		}
-
-		/*
-		var cell=new TableCell(name+"cellname");
-		row.addComponent(cell);	
-		var namelabel=new TextLabel(name+"name",name);
-		cell.addComponent(namelabel);
-
-		var cell2=new TableCell(name+"cellvalue");
-		cell2.style="text-align:center";
-		row.addComponent(cell2);
-		var unit=data.unit;
-		if(unit==undefined) unit="";
-		var valuelabel=new TextLabel(name+"value",""+data.val+""+unit);
-		cell2.addComponent(valuelabel);
-
-		var cell3=new TableCell(name+"cellminmax");
-		cell3.style="text-align:center";
-		row.addComponent(cell3);
-		var minmaxlabel=new TextLabel(name+"minmax","["+data["minval"]+unit+", "+data["maxval"]+unit+"]");
-		minmaxlabel.fontsize=0.7;
-		cell3.addComponent(minmaxlabel);
-
-		var cell4=new TableCell(name+"alarm");
-		cell4.style="text-align:center";
-		row.addComponent(cell4);
-		this.alarmview=new AlarmView(name,data.val);
-		cell4.addComponent(this.alarmview.component);
-		 */
 	}
 
 
 
 	update(data){
+		
+		
+		for(var k in this.varviews) {
+			this.varviews[k].update(data);
+		}
+		
+		
+		
+		
+		/*
 		var val=this.component.findByName(this.name+"value");
 		if(val){
 			var valtext=""+data.val;
@@ -561,7 +550,7 @@ class GenericNodeView extends EventEmitter {
 			var minmaxtext="["+data["minval"]+unit+", "+data["maxval"]+unit+"]";
 			if(minmaxlabel.text!=valtext) minmaxlabel.update(minmaxtext);
 		}
-
+* /
 	};
 
 	getComponent(){
@@ -631,7 +620,7 @@ class FixedNodeView extends EventEmitter{
 		return this.component;
 	}
 }
-
+*/
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 function removeA(arr) {
 	var what, a = arguments, L = a.length, ax;

@@ -4,7 +4,12 @@
 
 #include "../../infrastructure/CompatIO.h"
 
+
+
 #include "IODeviceGen.h"
+
+
+
 //#include "../datamodel/IODataGen.h"
 #undef FTEMPLATE
 #define FTEMPLATE ".irom.text.iodevicev01"
@@ -14,11 +19,11 @@
 
 class IODevicev01: public IODeviceGen
 {
-	SensorReader *reader=0;
+	IOReader *reader=0;
 	GenMap *config;	// could use instead the same info stored in GenReader
 
 public:
-	virtual SensorReader *getReader(){return reader;}
+	virtual IOReader *getReader(){return reader;}
 /*
 	IODevicev01 (unsigned int num0,GenString name0, GenString modelname0, std::vector<unsigned int> pins0, GenMap subpaths0, GenString path0):IODeviceGen(num0, name0, modelname0,pins0,subpaths0,path0){
 		println(RF("Constructor IODevicev01"));
@@ -36,11 +41,13 @@ public:
 
 	void init(){
  		println("IODevicev01::init");
-		GenString modelname=config->get(GenReader::getFN(RF("model"),num));
+		GenString modelname=config->get(getFN(RF("model"),num));
 		if(!reader && IOFactory::isSensor(modelname)) {
 //			GenString pins=config->get(getFN(RF("pins")));
 //			std::vector<unsigned int> pinvect=getPins(pins);
-			reader=IOFactory::createReader(num,config);
+			GenString pins=config->get(getFN(RF("pins"),num));
+			GenString model0=config->get(getFN(RF("model"),num));
+			reader=IOFactory::createReader(model0,num,IOFactory::getPinsFromString(pins));
 			if(!reader) return ;	//how to notify error
 	//		println("IODevicev01::init2");
 
@@ -48,7 +55,7 @@ public:
 //			println("IODevicev01::init3");
 			reader->init();
 
-			GenString autoreader=config->get(GenReader::getFN(RF(AUTOREADER_KEYWORD),num));
+			GenString autoreader=config->get(getFN(RF(AUTOREADER_KEYWORD),num));
 			if(isDigit(autoreader)){
 				reader->autoread((unsigned int)strToUnsignedLong(autoreader));
 			}
@@ -62,8 +69,8 @@ public:
 
 	GenString getPath(GenString path){
 		for(auto& c : path) c = tolower(c);
-		GenString str=config->get(GenReader::getFN(GenString()+RF(PATH_KEYWORD)+RF("-")+path,num));
-		if(str.empty()) str=config->get(GenReader::getFN(RF(PATH_KEYWORD),num));
+		GenString str=config->get(getFN(GenString()+RF(PATH_KEYWORD)+RF("-")+path,num));
+		if(str.empty()) str=config->get(getFN(RF(PATH_KEYWORD),num));
 		return str;
 	}
 
@@ -84,7 +91,7 @@ public:
 				GenString sub=first.substr(0,i);
 				GenString npath=getPath(sub);
 				if(npath.empty()) continue;
-				GenString nkey=GenString(DEFAULT_PATH)+npath+first.substr(i);
+				GenString nkey=GenString(RF(DEFAULT_PATH))+npath+first.substr(i);
 				it.setKey(nkey);
 //				println(nkey);
 			}
@@ -93,7 +100,7 @@ public:
 
 
 		println(GenString()+RF("IODevicev01::notify ")+emap->values.asJson());
-		emit(RF("updateModel"),emap);	//path is name of event object while reading is the event listened to
+		emit(RF(UPDATE_MODEL_EVENT),emap);	//path is name of event object while reading is the event listened to
 
 		return true;
 	};

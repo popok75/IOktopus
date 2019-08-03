@@ -51,12 +51,16 @@ class Controller{
 		this.model.subscribe("logload",function(event){ 
 			console.log("Controller: got logload event from model "+event);
 		//	this.view.createLogView(JSON.parse(JSON.stringify(this.model.log.slice())), this.model.data.nodes);
+	
 			this.view.updateLogView(this.model.series,this.model.labels, this.model.data.nodes);
 		}.bind(this));
 		this.model.subscribe("logreload",function(event){ 
 			console.log("Controller: got logreload event from model "+event);
 			this.view.updateLogView(this.model.series,this.model.labels);	// should include nodes in case of an update
 		}.bind(this));
+		
+		this.model.subscribe("confirmValue",this.view.notify);
+		this.model.subscribe("cancelValue",this.view.notify);
 
 			
 		this.view.subscribe("init",function(event){
@@ -74,7 +78,8 @@ class NodeController {
 			// in group : directory
 			// in subgroup : type
 			// a node view that display : name, value, minmax if there is
-		this.nodeview= controller.view.createNode(name,directory,data["type"] || data["class"] || "other",data);
+		var ggd=globalThis.globaldefs.data;
+		this.nodeview= controller.view.createNode(name,directory,data[ggd.typefield] || data[ggd.classfield] || "other",data);
 		 
 		this.controller=controller;
 		this.nodeview.subscribe("updateValue",function(event){this.react(event);}.bind(this));

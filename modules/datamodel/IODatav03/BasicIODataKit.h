@@ -95,18 +95,18 @@ public:
 
 	virtual bool notify(GenString path,GenString  tag, Event*event=0) {
 		if(!datamodel) return false;
-		if(getPathLeaf(path)!=RF(VALUEFIELD)) return false;
+		if(getPathLeaf(path)!=RF(VALUE_FIELD)) return false;
 		GenString val=datamodel->get(path);
 		if(!isDigit(val)) return false;
 
 		bool b=false;
-		GenString omin=datamodel->get(path+SLASH+MINFIELD);
-		GenString omax=datamodel->get(path+SLASH+MAXFIELD);
+		GenString omin=datamodel->get(path+SLASH+MIN_FIELD);
+		GenString omax=datamodel->get(path+SLASH+MAX_FIELD);
 		GenString min=getMin(omin,val);//			println("Omin:"+omin);
 		GenString max=getMax(omax,val);//			println("Omax:"+omax);
 
-		if(min!=omin) {datamodel->updateVal(path+SLASH+MINFIELD,min);b=true;}	// should trigger a notification at some point
-		if(max!=omax) {datamodel->updateVal(path+SLASH+MAXFIELD,max);b=true;}
+		if(min!=omin) {datamodel->updateVal(path+SLASH+MIN_FIELD,min);b=true;}	// should trigger a notification at some point
+		if(max!=omax) {datamodel->updateVal(path+SLASH+MAX_FIELD,max);b=true;}
 		return b;
 	};
 

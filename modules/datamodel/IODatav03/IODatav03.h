@@ -41,9 +41,9 @@ public:
 
 //	bool notify(GenString path, Event *){return true;};	//TODO: implement this
 
-	virtual bool notify(GenString ename,Event*event=0){
+	virtual bool notify(GenString ename,Event*event=0){ // save as v01, should be externalized somewhere practical
 
-			if(ename==GETASJSON){
+			if(ename==GET_JSON_DATA_EVENT){
 				StringEvent *strev=0;
 				if(event->getClassType()==StringEventTYPE) strev = (StringEvent*)(event);
 				if(!strev) return false;
@@ -51,21 +51,23 @@ public:
 				return true;
 			}
 
-			if(ename==UPDATEMODEL){
+			if(ename==UPDATE_MODEL_EVENT){
 				//	println("IODatav01:notify UPDATEMODEL");
 				StringMapEvent *emap=0;
 				if(event->getClassType()==StringMapEventTYPE) emap=(StringMapEvent*)(event);//should check type before casting
 				if(!emap || emap->values.empty()) return false; //pb
 				//	auto it=emap->values.begin();
 				//for(;!it.isEnd();it++){
-				for(GenMap::Iterator it=emap->values.begin();!it.isEnd();it++) {
-					updateVal(it.key(),it.value(),false);
+				bool b=false;
+				for(GenMap::Iterator it : emap->values) {
+					println(GenString()+"key: "+it.key());
+					b=updateVal(it.key(),it.value(),false) || b;
 				}
 				//should emit one change
-				emit(MODELUPDATED, emap);
+				emit(MODEL_UPDATED_EVENT, emap);
 				//println("IODatav01:notify :"+ename+" "+cell.key+" "+cell.value);
 				println(GenString()+RF("updated model to:")+getAsJson());
-
+				emap->ok=b;
 				return true;
 			}
 
@@ -115,8 +117,6 @@ public:
 
 //		GenString check=data.get(npath);std::cout<< npath <<" written with '"<<check<<"'"<<std::endl;
 		if(notifychange) emitIODataEvent(path,RF(WRITETAG));//delay events to avoid congesting event processing ?
-
-
 
 		return b;
 	}

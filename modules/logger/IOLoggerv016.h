@@ -13,11 +13,8 @@
 #define JSONMILLIS false
 
 #define LOGNODESPATH "/nodes/"
-#define VALKEYWORD "val"
-#define TSKEYWORD "ts"
 
-#define MODELUPDATEDEVENT "modelUpdated"
-#define GETJSONLOGEVENT "getLogJson"
+
 
 #include "IOLoggerMemStore.h"
 
@@ -76,7 +73,7 @@ class IOLoggerv016: public IOLoggerGen
 	uint64_t getMillis64(){return CLOCK32.getMS();}//millis64();};
 
 	bool notify(GenString command,Event *event){
-		if(command==RF(MODELUPDATEDEVENT)){
+		if(command==RF(MODEL_UPDATED_EVENT)){
 //			println("IOLoggerv016::notify MODELUPDATEDEVENT");
 			StringMapEvent *evmap=0;
 			if(event->getClassType()==StringMapEventTYPE) evmap=(StringMapEvent*)(event);
@@ -96,9 +93,9 @@ class IOLoggerv016: public IOLoggerGen
 				if(!newvar) continue;
 				//println(GenString()+key);
 				//println(GenString()+vname);
-				GenString valstr=evmap->values.get(nodespath+vname+'/'+RF(VALKEYWORD));
+				GenString valstr=evmap->values.get(nodespath+vname+'/'+RF(VALUE_FIELD));
 				if(valstr.empty()) continue;
-				GenString tsstr=evmap->values.get(nodespath+vname+'/'+RF(TSKEYWORD));
+				GenString tsstr=evmap->values.get(nodespath+vname+'/'+RF(TIMESTAMP_FIELD));
 				if(isDigit(valstr)) {
 					double dval=strToDouble(valstr);
 					uint64_t nts=0;
@@ -128,7 +125,7 @@ class IOLoggerv016: public IOLoggerGen
 				} else return false;
 			}*/
 		}
-		if(command==RF(GETJSONLOGEVENT)){
+		if(command==RF(GET_JSON_LOG_EVENT)){
 			NamedStringMapEvent *strev=0;
 			if(event->getClassType()==NamedStringMapEventTYPE) strev=(NamedStringMapEvent*)(event);
 
@@ -179,7 +176,7 @@ class IOLoggerv016: public IOLoggerGen
 			//		println(GenString()+RF("IOLoggerMemStore::saveToLog : new ts ")+to_string(ts)+RF(" saved ts:")+to_string(diff));
 			diff=ts-diff;
 			diff=diff/1000;
-		//    println(GenString()+RF("logdiff:")+to_string(diff)+RF(" ")+to_string(refreshPeriodSec));
+		    println(GenString()+RF("logdiff:")+to_string(diff)+RF(" ")+to_string(refreshPeriodSec));
 			if((diff+1)<refreshPeriodSec) return false; // got a value too soon
 		}
 		println(GenString()+"adding data : "+cname+ " v:"+to_stringWithPrecision(dval,2)+" ts:"+to_string(ts));

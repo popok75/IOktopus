@@ -1,6 +1,9 @@
 #ifndef IOSERVERGEN_H
 #define IOSERVERGEN_H
 
+#include "../moduleshared.h"
+
+
 #include "../../infrastructure/CompatNet.h"
 #include "../../infrastructure/CompatPrint.h"
 #include "../datamodel/IODataGen.h"

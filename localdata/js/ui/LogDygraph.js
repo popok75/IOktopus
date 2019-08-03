@@ -395,13 +395,13 @@ class LogDygraph {
 		return seriesnamesy2;
 	}
 
-	getRangeSeries(rangename){
+	getRangeSeries(rangename, yaxiscount){
 		if(!this.userangesubset) return this.getMainSeries();
 		// possibly reduce data to one per axis (including the showed data) to improve performance ?
 		var i=0;
 		for(;i<this.labels.length;i++) if(this.labels[i]==rangename) break;
 		if(i==this.labels.length) return 0;
-		var series= getSubSeries(this.data, i);
+		var series= getSubSeries(this.data, i,yaxiscount);
 		if(series.length==1) {
 			var d=new Date(series[0][0].getTime());
 			series.push(series.slice(0)[0].slice(0));	// if there is only one dot, duplicate it to prevent draphic glitch
@@ -416,7 +416,7 @@ class LogDygraph {
 		if(this.userangesubset){
 			var labels0=['Date'];
 			labels0.push(name);
-			if(seriesnamesy2) labels0.push(seriesnamesy2[0]);
+			if(seriesnamesy2 && seriesnamesy2.length) labels0.push(seriesnamesy2[0]);
 			return labels0;
 
 		} else return this.labels;
@@ -433,9 +433,13 @@ class LogDygraph {
 	addRange(rangename, name,color){
 		// add minmax as fake data to force valueRange for rangeselector but add a visual glitch when too few data, is it a todo ?
 
-		var dataseries=this.getRangeSeries(name);
 		var seriesnamesy=this.getRangeNamesY(name);
 		var seriesnamesy2=this.getRangeNamesY2(name);
+		var ycount=0;
+		if(seriesnamesy.length>0) ycount++;
+		else if(seriesnamesy2.length>0) ycount++;
+		var dataseries=this.getRangeSeries(name,ycount);
+		
 		var config=this.config;
 		var rangeid=this.ranges.length+1;
 		var labels0=this.getRangeLabels(name, seriesnamesy2);
@@ -632,10 +636,14 @@ function getSerieByDate(serie, date){
 
 
 
-function getSubSeries(data,column){
+function getSubSeries(data,column,yaxiscount){
 	var series=[];
 	for(var i in data) {
-		if(data[i][column]!=null) series.push([data[i][0],data[i][column],0]);
+		if(data[i][column]!=null) {
+			if(yaxiscount>1) series.push([data[i][0],data[i][column],0]);	// 0 is added for the other axis to keep a margin
+			else series.push([data[i][0],data[i][column]]);
+		}
+	 
 	}
 	return series;
 }

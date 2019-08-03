@@ -77,7 +77,7 @@ bool testChunkedVector(){
 
 bool testSSMap(){
 
-	GenSSMap map={{"type","input"}, {"unit","\%"}, {"val","--"}};
+	GenSSMap map={{"type","input"}, {"unit","\%"}, {"value","--"}};
 	// check embraced creation
 	GenString type=map.get("type");
 	bool b=(map.get("type")=="input") && (map.get("unit")=="\%") && (map.get("val")=="--");
@@ -91,7 +91,7 @@ bool testSSMap(){
 
 bool testMap(){
 
-	GenMap map={{"type","input"}, {"unit","\%"}, {"val","--"}};
+	GenMap map={{"type","input"}, {"unit","\%"}, {"value","--"}};
 	// check embraced creation
 	GenString type=map.get("type");
 	bool b=(map.get("type")=="input") && (map.get("unit")=="\%") && (map.get("val")=="--");
@@ -105,12 +105,12 @@ bool testMap(){
 
 /*
 bool testTreeMap(){
-	GenMap map={{"type","input"}, {"unit","\%"}, {"val","--"}};
+	GenMap map={{"type","input"}, {"unit","\%"}, {"value","--"}};
 	GenString path="/nodes/Humidity";
 	GenTreeMap treemap;
 	treemap.update(path,map);
 
-	bool b=(treemap.get(path+"/type")=="input") && (treemap.get(path+"/unit")=="\%") && (treemap.get(path+"/val")=="--");
+	bool b=(treemap.get(path+"/type")=="input") && (treemap.get(path+"/unit")=="\%") && (treemap.get(path+"/value")=="--");
 	if(!b) return false;
 
 	return true;

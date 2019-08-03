@@ -218,7 +218,7 @@ class Component extends AbstractComponent {	//here we know html
 		var item=geid(this.name);
 		if(item) {
 			if(propvalue)  item[propname]=propvalue;
-			else item.removeProperty(propname);
+			else item.removeAttribute(propname);
 		}
 		
 		if(!this.attributes) this.attributes={};
@@ -482,7 +482,7 @@ class TextInputComponent extends Component{
 	getMyWidth(){return HTMLUtils.getWidthOfInput(this.textvalue,this.attributes.style,this.name);}
 	
 	nextField(current){
-		current.nextSibling.focus();
+		if(current.nextSibling) current.nextSibling.focus();
 /*	    for (var i = 0; i < current.form.elements.length; i++){
 	        if (current.form.elements[i].tabIndex == current.tabIndex+1){
 	            current.form.elements[i].focus();
@@ -507,8 +507,9 @@ class TextInputComponent extends Component{
 	}
 
 	update(text){
-		this.text=text;
-		document.getElementById(this.name).outerHTML = this.getHtml();
+		this.textvalue=text;
+		this.updateProperties({"value":this.textvalue});
+//		document.getElementById(this.name).outerHTML = this.getHtml();
 	}
 }
 
@@ -620,13 +621,18 @@ class CheckBoxBinaryComponent extends BinaryComponent{
 		this.style="";
 		this.tag="input"
 
-			this.extra=" type='checkbox' value='"+this.text+"' ";// onchange ='objectChange(this);' onkeydown='this.style.width = ((this.value.length)) + \"ch\";delayEvent(this);' onpaste='delayEvent(this)' oncut='delayEvent(this)'  onKeyPress ='delayEvent(this)' onKeyUp ='delayEvent(this);'";
+		this.extra0=" type='checkbox' value='"+this.text+"' ";// onchange ='objectChange(this);' onkeydown='this.style.width = ((this.value.length)) + \"ch\";delayEvent(this);' onpaste='delayEvent(this)' oncut='delayEvent(this)'  onKeyPress ='delayEvent(this)' onKeyUp ='delayEvent(this);'";
+		this.extra=this.extra0;
 		if(val) this.extra+=" checked";
 		subscribeObject(this.name,this);
 
 	};
 	getHtml(){
 		return super.getHtml();
+	}
+	update(val){
+		this.extra=this.extra0;
+		if(val) this.extra+=" checked";
 	}
 }
 

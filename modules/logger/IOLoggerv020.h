@@ -13,11 +13,7 @@
 //#define JSONMILLIS false
 
 #define LOGNODESPATH "/nodes/"
-#define VALKEYWORD "val"
-#define TSKEYWORD "ts"
 
-#define MODELUPDATEDEVENT "modelUpdated"
-#define GETJSONLOGEVENT "getLogJson"
 
 #include "IOLoggerFileStore.h"
 
@@ -90,7 +86,7 @@ public:
 
 
 	bool notify(GenString command, Event *event){
-		if(command==RF(MODELUPDATEDEVENT)){	// use events that has both ts and val
+		if(command==RF(MODEL_UPDATED_EVENT)){	// use events that has both ts and val
 //			println("IOLoggerv020::notify MODELUPDATEDEVENT");
 			StringMapEvent *evmap=0;
 			if(event->getClassType()==StringMapEventTYPE) evmap=(StringMapEvent*)(event);
@@ -111,9 +107,9 @@ public:
 				if(!newvar) continue;
 	//			println(GenString()+key);
 	//			println(GenString()+vname);
-				GenString valstr=evmap->values.get(nodespath+vname+'/'+RF(VALKEYWORD));
+				GenString valstr=evmap->values.get(nodespath+vname+'/'+RF(VALUE_FIELD));
 				if(valstr.empty()) continue;
-				GenString tsstr=evmap->values.get(nodespath+vname+'/'+RF(TSKEYWORD));
+				GenString tsstr=evmap->values.get(nodespath+vname+'/'+RF(TIMESTAMP_FIELD));
 				if(isDigit(valstr)) {
 					double dval=strToDouble(valstr);
 					uint64_t nts=0;
@@ -127,7 +123,7 @@ public:
 
 		}
 
-		if(command==RF(GETJSONLOGEVENT)){
+		if(command==RF(GET_JSON_LOG_EVENT)){
 			NamedStringMapEvent *strev=0;
 			if(event->getClassType()==NamedStringMapEventTYPE) strev=(NamedStringMapEvent*)(event);
 			if(!strev) return false;

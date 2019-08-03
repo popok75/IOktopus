@@ -5,12 +5,17 @@
 //#include "../datamodel/IODataGen.h"   			// no need
 //#include "../../infrastructure/CompatNet.h"		// what for
 
+#include "../moduleshared.h"
+
+
 #undef FTEMPLATE
 #define FTEMPLATE ".irom.text.iologgergen"
 
 #define LOGREFRESHPERIOD_KEYWORD "log-refreshperiodsec"
 #define LOGMINMEMORYLIMIT_KEYWORD "log-minmemorylimit"
 #define MAXTIMEPOINTS_KEYWORD "log-maxtimepoints"
+
+
 
 class IOLoggerGen : public EventListener
 {

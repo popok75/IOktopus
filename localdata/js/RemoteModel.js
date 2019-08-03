@@ -121,17 +121,41 @@ class RemoteModel extends EventEmitter {
 		xhttp.setRequestHeader('x-BootTime', "?");// ask each time in case of retart // should be notification
 	}
 
+	findByPath(path){
+		var arr=path.split('/');
+		var obj=this.data;
+		for(var k in arr){
+			if(!arr[k]) continue;
+			if(!(arr[k] in obj)) return null;
+			obj=obj[arr[k]];
+		}
+		return obj;
+	}
 
+	setValue(path,value){
+		var leaf=path.split("/").pop();
+		var obj=this.findByPath(path.substring(0,path.length-leaf.length));
+		if(!obj) return;
+		obj[leaf]=value;
+	}
+	
 	userChange(path,value){
 		console.log();		
 		// send a request of modification to server, if the reply is ok, 
 				// it is commited locally and then overwritten by the server model update
-
-		loadremote(this.espip+"/data"+path+"?value="+value,function(t,xhttp){
+		var leaf=path.split("/").pop(), branch=path.substring(0,path.length-leaf.length);
+		var url=this.espip+"/data/"+branch;
+		loadremote(url,function(t,xhttp){
 			console.log(t);
-			
+			// if ok notify back 
+			if(t=="OK"){
+				this.setValue(path,value);
+				this.emit("confirmChange",path);				
+			} else if(t=="NOTOK") {
+				this.emit("cancelChange",path);
+			}
 		}.bind(this),
-		{method:"PUT",tosend:value});
+		{method:"PUT",tosend:leaf+"="+value});
 	
 	};
 

@@ -6,18 +6,9 @@
 
 #include "../../infrastructure/events/DefaultEventEmitter.H"
 
-/*
-#define VALUEFIELD "val"
-#define MINFIELD "minval"
-#define MAXFIELD "maxval"
-*/
-#define VALUEFIELD "val"
-#define TSFIELD RF("ts")
-#define MINFIELD RF("minval")
-#define MAXFIELD RF("maxval")
-#define MODELUPDATED RF("modelUpdated")
-#define GETASJSON RF("getAsJson")
-#define	UPDATEMODEL RF("updateModel")
+
+#include "../moduleshared.h"
+
 #define	SLASH RF("/")
 
 

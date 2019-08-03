@@ -3,9 +3,8 @@
 
 
 
-#include "../iodrivers/SensorDriver.h"
-
 #include <AsyncHTU21D.h>	// custom driver from sparkfunHTU21D modified to get async and the error back
+#include "../iodrivers/IODriver.h"
 #undef FTEMPLATE
 #define FTEMPLATE ".irom.text.htudriver"
 

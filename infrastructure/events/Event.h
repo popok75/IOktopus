@@ -66,7 +66,9 @@ public:
 #define StringMapEventTYPE 2
 class StringMapEvent : public Event{
 public:
+	bool ok=true;
 	GenMap values;
+	StringMapEvent(){};		// empty map constructor
 	StringMapEvent(GenMap *src): values(*src) {}
 	StringMapEvent(std::multimap<GenString,GenString> *src): values(*src)  {};
 	StringMapEvent(std::initializer_list<std::initializer_list<GenString>> src): values(src)  {};

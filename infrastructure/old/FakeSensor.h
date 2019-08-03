@@ -1,8 +1,9 @@
 #ifndef FAKESENSOR_H
 #define FAKESENSOR_H
 
-#include "SensorReader.h"
 #include <time.h>
+
+#include "../iodrivers/IOReader.h"
 
 #undef FTEMPLATE
 #define FTEMPLATE ".irom.text.fakesensor"

@@ -3,7 +3,7 @@
 
 #define DHTDEBUG 3
 
-#include "../iodrivers/SensorDriver.h"
+#include "../iodrivers/IODriver.h"
 
 #include <dht_nonblocking.h>
 #undef FTEMPLATE

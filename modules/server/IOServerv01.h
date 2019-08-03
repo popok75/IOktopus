@@ -116,7 +116,7 @@ public:
 		public:
 			serverYieldCallback(IOServerv01 *server0):server(server0){};
 			void yield(){
-//				println("IOServerv01:IOServer yield callback");
+				//				println("IOServerv01:IOServer yield callback");
 				if(server) {
 					server->yield();
 					//delay(20);
@@ -181,6 +181,29 @@ public:
 		return contentType;
 	}
 
+	GenString getArgument(GenString argname){
+		std::map<std::string,std::string> args=server.getArguments();
+		for(auto it : args) {
+			//		println(GenString()+RF("Found argument :")+it.first+":"+it.second);
+			if(it.first==argname) {
+				return it.second;
+			}
+		}
+		return "";
+	}
+
+
+	void printArguments(){
+		std::map<std::string,std::string> args=server.getArguments();
+		for(auto it : args) {
+//			uint64_t ts=0;
+			println(GenString()+"Found argument : '"+it.first+"'='"+it.second+"'");
+	/*		if(it.first==RF("from") && isDigit(it.second)) {
+				ts=strToUint64(it.second)*1000;
+				break;
+			}
+	*/	}
+	}
 
 	bool handleRequest(GenString path){
 		println(RF("----------------->"));
@@ -191,6 +214,9 @@ public:
 		if(path.length()>1 && path[path.length()-1]=='/') path.erase(path.length()-1);		//		print("IOServer::handleFileRead: mem 0 :");println(ESP.getFreeHeap(),DEC);
 
 		println(RF("IOServer::handleFileRead : serving uri : '")+path+"'");
+		printArguments();
+
+
 
 		// client request boot timestamp
 		if(server.hasHeader(RF("x-BootTime"))) server.sendHeader(RF("x-BootTime"), to_string(CLOCK32.getBoottime()));//	 println("IOServerv01::handleRequest: x-BootTime true");
@@ -216,6 +242,8 @@ public:
 		if(!readPermitted(path,&pp)) return servePermissionDenied(pp);
 
 		if(path==RF("/data")) return serveData();
+		if(startsWith(path,"/data/")) return serveDataNode(path);
+
 		if(path==RF("/log")) {serveLog();return true;}
 
 		unsigned int start=0, end=0;
@@ -225,7 +253,7 @@ public:
 
 
 		if((root && !CURFS.exists(path)) || path==RF("/rescue")) {
-	//		println(GenString()+"path not found :"+path+", serving rescue page");
+			//		println(GenString()+"path not found :"+path+", serving rescue page");
 			return serveRescuePage();	//either index.html or index.html.gz
 		}
 
@@ -259,16 +287,6 @@ public:
 
 
 
-	GenString getArgument(GenString argname){
-		std::map<std::string,std::string> args=server.getArguments();
-		for(auto it : args) {
-	//		println(GenString()+RF("Found argument :")+it.first+":"+it.second);
-			if(it.first==argname) {
-				return it.second;
-			}
-		}
-		return "";
-	}
 
 
 	bool getRange(unsigned int &start, unsigned int &end){
@@ -360,6 +378,7 @@ public:
 	}
 
 
+	/////////////////////////////////////
 	bool servePermissionDenied(bool passwordprovided){
 		if(!passwordprovided) server.send(403, RF("text/html"),RF("File access forbidden without password !\n"));
 		else server.send(403, RF("text/html"),RF("File access forbidden, password incorrect !\n"));
@@ -367,11 +386,12 @@ public:
 	} // data & log can be rendered uselessly read forbidden
 
 
+	/////////////////////////////////////
 	bool serveData(){
 		// GenString message=myiodata->getAsJson();
 		// case of sync events
 		StringEvent strev=StringEvent();
-		emit(RF("getAsJson"),&strev);				// get the data by sync event rather than through getAsJson
+		emit(RF(GET_JSON_DATA_EVENT),&strev);				// get the data by sync event rather than through getAsJson
 		//			server.send(200, "application/json",strev.str.c_str(),strev.str.size());
 		server.send(200, RF("application/json"),strev.str);	//is the server duplicating the string (no reason)
 		return true;
@@ -379,6 +399,36 @@ public:
 
 
 
+
+	/////////////////////////////////////
+	bool serveDataNode(GenString &path){
+		std::map<std::string,std::string> args=server.getArguments();
+		if(args.empty()) {
+			server.send(200, RF("text/html"),RF("NOTOK"));	// we send an http ok but a model notok
+			return true;
+		}
+
+		GenString datapath=path.substr(5);	// minus "/data"
+		StringMapEvent emap=StringMapEvent();
+		for(auto it : args) {
+			println(GenString()+"Found argument : '"+it.first+"'='"+it.second+"'");
+			emap.values.set(datapath+'/'+it.first,it.second);
+		}	// TODO: we should check if this argument is valid but how to know ? syntax-based ?
+
+		println(GenString()+RF("IOServerv01::serveDataNode ")+emap.values.asJson());
+		emit(RF("updateModel"),&emap);	//path is name of event object while reading is the event listened to
+
+		if(!emap.ok) {
+			server.send(200, RF("text/html"),RF("NOTOK"));  	// we send an http ok but a model notok
+			return true;
+		}
+
+		server.send(200, RF("text/html"),RF("OK"));	//is the server duplicating the string (no reason)
+		return true;
+	}
+
+
+	/////////////////////////////////////
 	bool streamLogFile(GenString &path,unsigned int start,unsigned int end){
 		GenString contentType=makeContentType(path);
 		bool b=(server.streamFile(path, contentType,start,end)>0);
@@ -388,6 +438,7 @@ public:
 	}
 
 
+	/////////////////////////////////////
 	bool serveSetWifi(){
 		GenString ssid=getArgument(RF("ssid"));
 		GenString pwd=getArgument(RF("ssidpassword"));
@@ -416,7 +467,7 @@ public:
 	}
 
 
-
+	/////////////////////////////////////
 	bool servePopulate(){
 		// we should check permission to populate
 		if(serverpopulate || bootstrapDownloading)
@@ -437,10 +488,7 @@ public:
 
 
 	bool serveRescuePage(){
-
-
 		println("Serving rescue page");
-
 
 		//// serve a backup page
 		StringEvent strev=StringEvent();
@@ -525,7 +573,7 @@ public:
 		if(ts) strev.values.set(RF("ts"),to_string(ts));
 		if(id) strev.values.set(RF("id"),to_string(id));
 
-		emit(RF("getLogJson"),&strev);
+		emit(RF(GET_JSON_LOG_EVENT),&strev);
 
 		unsigned int totalsize=0;
 		GenString totstr=strev.values.get(RF("total"));

@@ -3,7 +3,7 @@
 
 #define AUTOREADER_KEYWORD "autoread"
 
-#include "GenReader.h"
+#include "BasicReader.h"
 
 
 //#include "../../datastruct/GenString.h"
@@ -25,7 +25,7 @@
 #endif
 
 
-//static GenObjMap<unsigned int, SensorReader*> *_sensors;
+//static GenObjMap<unsigned int, IOReader*> *_sensors;
 #define SHT15_KEYWORD "SHT15"
 #define HTU21_KEYWORD "HTU21"
 #define DHT22_KEYWORD "DHT22"
@@ -36,8 +36,8 @@
 #define FTEMPLATE ".irom.text.iofactory"
 
 
-SensorDriver *IOFactorycreateDriver (GenString model0,unsigned int num,std::vector<unsigned int> &pinvect){
-	SensorDriver *ndriver=0;
+IODriver *IOFactorycreateDriver (GenString model0,unsigned int num,std::vector<unsigned int> &pinvect){
+	IODriver *ndriver=0;
 #ifdef x86BUILD
 	if(model0==RF(SHT15_KEYWORD)) ndriver= new FakeTempRHDriver(num,pinvect);
  	if(model0==RF(HTU21_KEYWORD)) ndriver= new FakeTempRHDriver(num,pinvect);
@@ -63,24 +63,21 @@ class IOFactory {
 public:
 	static bool isSensor (GenString model0){return true;};
 /*
-	static SensorReader*getReader(std::vector<unsigned int> pins0){
+	static IOReader*getReader(std::vector<unsigned int> pins0){
 	//	if(!_sensors) return 0;
 	//	for(unsigned int i:pins0) if(_sensors.has(i)) return _sensors.get(i);
 		return 0;
 	}
 */
-//	static SensorReader *createSensor (GenString model0, std::vector<unsigned int> &pins, GenString name=""){
+//	static IOReader *createSensor (GenString model0, std::vector<unsigned int> &pins, GenString name=""){
 #undef FTEMPLATE
 #define FTEMPLATE ".irom.text.iofactory4"
-	static SensorReader *createReader (unsigned int num, GenMap *config){ //GenString model0, std::vector<unsigned int> &pins, GenString name=""){
+	static IOReader *createReader (GenString model0, unsigned int num, std::vector<unsigned int>pinvect){ //GenString model0, std::vector<unsigned int> &pins, GenString name=""){
  //		println(RF("IOFactory::createSensor"));
 
-		GenString pins=config->get(GenReader::getFN(RF("pins"),num));
-		std::vector<unsigned int> pinvect=getPins(pins);
-		GenString model0=config->get(GenReader::getFN(RF("model"),num));
-		SensorDriver *ndriver=IOFactorycreateDriver(model0,num,pinvect);
+		IODriver *ndriver=IOFactorycreateDriver(model0,num,pinvect);
 		if(!ndriver) return 0;
-		GenReader *genreader=new GenReader(ndriver);
+		BasicReader *genreader=new BasicReader(ndriver);
 
 #ifdef ESP8266BUILD
 	print(RF("IOFactory::createSensor - memory after end:"));	 println(ESP.getFreeHeap(),DEC);
@@ -104,7 +101,7 @@ public:
 		return p;
 	}
 
-	static std::vector<unsigned int>getPins(GenString pins){
+	static std::vector<unsigned int> getPinsFromString(GenString pins){
 		std::vector<unsigned int> vect;
 		unsigned int ip=0,i=pins.find(",",ip);
 		while(i<pins.size()){
