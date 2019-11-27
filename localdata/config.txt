@@ -46,11 +46,14 @@ device0-path-temperature: SHT15-Temperature
 device0-path-humidity: SHT15-Humidity
 device0-autoread: 5	//seconds
 */
+ 
+
 device1-model: HTU21
 device1-pins: D2, D1
 device1-path-temperature: HTU21-Temperature
 device1-path-humidity: HTU21-Humidity
 device1-autoread: 7	//seconds
+ 
 /*
 device5-model: DHT22
 device5-pins: D5

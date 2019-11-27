@@ -18,6 +18,8 @@
 
  * */
 
+#undef FTEMPLATE
+#define FTEMPLATE ".irom.text.operationlib"
 
 ////////////////////// Operation lib
 
@@ -84,9 +86,9 @@ class Action : public IODataListener{
 public:
 	Action(GenString classname0, Operation *parent):parentOperation(parent),className(classname0){}
 	virtual bool notify(GenString path, GenString  tag, Event*event=0){
-		std::cout << "Action::notify " << path << std::endl;
+	//	std::cout << "Action::notify " << path << std::endl;
 		if(aProcess) aProcess->process(path,event);
-		else std::cout << "Action::notify no aProcess" << path << std::endl;
+	//	else std::cout << "Action::notify no aProcess" << path << std::endl;
 		return true;
 	};
 	bool init();
@@ -132,7 +134,9 @@ public:
 	GenString getName(){return name;}
 
 	virtual bool notify(GenString path, GenString  tag, Event*event=0){
-		std::cout << "Operation::notify " << path << std::endl;
+	//	std::cout << "Operation::notify " << path << std::endl;
+		// distribute notify to inner actions
+		for(Action *ac : actions) ac->notify(path,tag,event);
 		return true;
 	};
 
@@ -148,13 +152,17 @@ public:
 	} ;
 
 	bool isActive(){
-		GenString vardefpath=GenString(RF(OPPATHDEFLIB))+"Operation/args";	// first arg of generic must be active field name
-		GenString active=oplib->getModel()->get(getPath()+'/'+vardefpath);
+		GenString vardefpath=GenString(RF(OPPATHDEFLIB))+"Operation/vars";
+		OperationDefs *gdefs=oplib->getDefinitions();
+		std::vector<GenString> keys = gdefs->getDefs(vardefpath);
+		if(keys.empty()) return false;
+			// first arg of generic operation must be active field name
+		GenString active=oplib->getModel()->get(getPath()+'/'+keys.front());
 		return active=="1";
 	}
 
 	bool build(){
-		std::cout << "Operation::build " << name << std::endl;
+	//	std::cout << "Operation::build " << name << std::endl;
 		auto tm=oplib->getModel();
 		localDefOperation ldefop=localDefOperation(this);
 		// conform data with definitions
@@ -207,7 +215,7 @@ public:
 bool Action::init(){
 //	std::cout << "Action::init " << parentOperation->getPath() << std::endl;
 	if(aProcess) aProcess->process(parentOperation->getPath(),0);
-	else std::cout << "Action::init no aProcess" << parentOperation->getPath() << std::endl;
+//	else std::cout << "Action::init no aProcess" << parentOperation->getPath() << std::endl;
 	return true;
 }
 
@@ -272,6 +280,8 @@ Action* OperationLib::createAction(GenString &classname, Operation *op){
 	return ac;
 }
 
+#undef FTEMPLATE
+#define FTEMPLATE ".irom.text.operationlib2"
 
 
 bool OperationLib::build(){	// build the operation lib : create operation/actions, subscribe them and conform the data

@@ -44,7 +44,6 @@ class IOLoggerv016: public IOLoggerGen
 	public:
 
 	void resync(uint64_t diffms){
-
 		logdata.resync(diffms);
 		//	for(std::vector<StreamCell>::iterator it=logdata.begin();it!=logdata.end();it++) it->resync(diffms);	// correct each timestamp
 	}
@@ -72,19 +71,37 @@ class IOLoggerv016: public IOLoggerGen
 
 	uint64_t getMillis64(){return CLOCK32.getMS();}//millis64();};
 
+
+	bool checkTag(PtrNStringMapEvent *evmap,GenString npath){
+		GenTreeMap *dataptr=0;
+		dataptr=(GenTreeMap *)(evmap->ptr);
+		if(dataptr) {
+			GenString p=npath+'/'+RF(TAG_FIELD);
+			GenString val=dataptr->findSubValue(DISCRETE_TAG,p);
+			if(!val.empty()) return true;
+		}
+		return false;
+	}
+
 	bool notify(GenString command,Event *event){
 		if(command==RF(MODEL_UPDATED_EVENT)){
-//			println("IOLoggerv016::notify MODELUPDATEDEVENT");
-			StringMapEvent *evmap=0;
-			if(event->getClassType()==StringMapEventTYPE) evmap=(StringMapEvent*)(event);
+			println("IOLoggerv016::notify MODELUPDATEDEVENT");
+			PtrNStringMapEvent *evmap=0;
+			if(event->isClassType(PtrNStringMapEventTYPE)) evmap=(PtrNStringMapEvent*)(event);
 			if(!evmap) return false;
 			GenString vnamesave;
 
 			// find a val, check if we have the ts, save it
 			std::vector<GenString> loaded ;
 			// extract first var name
-				// see if we have a val and ts -> save
+			// see if we have a val and ts -> save
 			GenString nodespath=RF(LOGNODESPATH);
+			/*
+		 	GenString path=nodespath+'/'+RF(TAG_FIELD);	//tag field is not in the event so we'll have to go look for it
+			StringMapEvent emapn=StringMapEvent();
+		 	emapn.values.set("0",path);
+			emit(RF(GET_DATA_SUBVALUES_EVENT),&emapn);
+			 */
 			for(auto it : evmap->values){
 				GenString key=it.key();
 				GenString vname=getPathBranch(key).erase(0,nodespath.size());
@@ -93,20 +110,34 @@ class IOLoggerv016: public IOLoggerGen
 				if(!newvar) continue;
 				//println(GenString()+key);
 				//println(GenString()+vname);
+
+				/*	GenString path=nodespath++vname+'/'+RF(TAG_FIELD));	//tag field is not in the event so we'll have to go look for it
+	 			PtrNStringMapEvent strev=StringEvent();
+				strev.str=path;
+				emit(RF(GET_DATA_VALUE_EVENT),&strev);				// get the data by sync event
+				 */
+				// stop earlier if the var is not tracked, i.e. not "value"
 				GenString valstr=evmap->values.get(nodespath+vname+'/'+RF(VALUE_FIELD));
 				if(valstr.empty()) continue;
+
+				bool tb=checkTag(evmap,nodespath+vname);
+				if(tb){
+					//
+					println();
+				}
+
 				GenString tsstr=evmap->values.get(nodespath+vname+'/'+RF(TIMESTAMP_FIELD));
 				if(isDigit(valstr)) {
 					double dval=strToDouble(valstr);
 					uint64_t nts=0;
 					if(isDigit(tsstr)) nts=strToUint64(tsstr);
-					saveToLog(vname,dval,nts);
+					saveToLog(vname,dval,nts,tb);
 					loaded.push_back(vname);
 				}
 			}
 			if(!loaded.empty()) return true;
 			else return false;
-/*
+			/*
 
 	 		NamedStringMapEvent *namev=0;
 			if(event->getClassType()==NamedStringMapEventTYPE) namev=(NamedStringMapEvent*)(event);
@@ -153,7 +184,7 @@ class IOLoggerv016: public IOLoggerGen
 			else strev->values.erase(cont);
 			logdata.setLocked(tobecontinued);
 			if(!tobecontinued) println(GenString()+RF("IOLoggerv016::notify post : total dots :")+to_string(logdata.size()));
-		//	println(GenString()+RF("IOLoggerv016::notify json:")+(strev->str));
+			//	println(GenString()+RF("IOLoggerv016::notify json:")+(strev->str));
 #ifdef ESP8266
 			//				print("IOLoggerv016::notify post : free memory :");	println(ESP.getFreeHeap(),DEC);
 #endif
@@ -162,23 +193,49 @@ class IOLoggerv016: public IOLoggerGen
 		return false;
 	}
 
+	uint64_t psychts=0;
 
-
-	bool saveToLog(GenString cname, double dval,uint64_t tsdata){
+	bool saveToLog(GenString cname, double dval,uint64_t tsdata, bool logall=false){
 #ifdef ESP8266
- 	print(RF("IOLoggerv016::saveToLog - memory :"));	 println(ESP.getFreeHeap(),DEC);
+		print(RF("IOLoggerv016::saveToLog - memory :"));	 println(ESP.getFreeHeap(),DEC);
 #endif
-		uint64_t ts=tsdata;
-		if(!ts) ts=getMillis64();
-		uint64_t diff=logdata.getLastTSMS(cname);
-//		println(GenString()+RF("IOLoggerMemStore::saveToLog : new ts ")+to_string(ts)+RF(" saved ts:")+to_string(diff));
-		if(diff) {
-			//		println(GenString()+RF("IOLoggerMemStore::saveToLog : new ts ")+to_string(ts)+RF(" saved ts:")+to_string(diff));
-			diff=ts-diff;
-			diff=diff/1000;
-		    println(GenString()+RF("logdiff:")+to_string(diff)+RF(" ")+to_string(refreshPeriodSec));
-			if((diff+1)<refreshPeriodSec) return false; // got a value too soon
+		uint64_t ts=tsdata;	//use timestamp of data value if available
+		if(!ts) {
+			ts=getMillis64();
 		}
+		if(!logall){
+
+			uint64_t diffo=logdata.getLastTSMS(cname);
+			println(GenString()+RF("IOLoggerv016::saveToLog: new data name:")+cname);
+			//	println(GenString()+RF("IOLoggerv016::saveToLog : new ts ")+to_string(ts)+RF(" saved ts:")+to_string(diffo));
+			//	if(diffo<ts) return false;
+			if(diffo ){//&& diffo<ts) {
+				println(GenString()+RF("IOLoggerMemStore::saveToLog : new ts ")+to_string(ts)+RF(" saved ts:")+to_string(diffo));
+				uint64_t diff=ts-diffo;
+				diff=diff/1000;
+				println(GenString()+RF("logdiff:")+to_string(diff)+RF(" ")+to_string(refreshPeriodSec));
+				/*    if(diff>10000){
+		    	uint64_t now2=millis64();
+		    	std::cout << "now2" << to_string(now2) << std::endl;
+		    	uint64_t diff2=logdata.getLastTSMS(cname);
+		    	std::cout << "problem here" << to_string(diff2) << std::endl;
+		    }*/
+				if((diff+1)<refreshPeriodSec) return false; // got a value too soon
+			}
+		}
+		/*
+		if(psychts>0 && (ts-psychts)>39000){
+			std::cout << "no psychro-humidity for a while"  << (ts-psychts) << std::endl;
+		}
+
+		if(cname=="Psychro-Humidity") {
+			if((ts-psychts)<18000){
+				std::cout << "no psychro-humidity too soon "<< (ts-psychts)  << std::endl;
+			}
+			psychts=ts;
+		}
+		 */
+
 		println(GenString()+"adding data : "+cname+ " v:"+to_stringWithPrecision(dval,2)+" ts:"+to_string(ts));
 		return logdata.addData(cname,dval,ts);
 	}
@@ -194,7 +251,7 @@ class IOLoggerv016: public IOLoggerGen
 
 	bool writeJson(GenString &json2, unsigned int maxsize=0){	//return true to be called for more return false when finished
 
-//		println(GenString()+RF("IOLoggerv016::writeJson logdata.size():")+to_string(logdata.size()));
+		//		println(GenString()+RF("IOLoggerv016::writeJson logdata.size():")+to_string(logdata.size()));
 		bool limit=true;
 		if(maxsize==0) limit=false; //no limit
 
@@ -216,9 +273,9 @@ class IOLoggerv016: public IOLoggerGen
 
 
 		unsigned int dots=logdata.size();
-//		println(GenString()+RF("IOLoggerv016::writeJson dots:")+to_string(logdata.size()));
+		//		println(GenString()+RF("IOLoggerv016::writeJson dots:")+to_string(logdata.size()));
 		for(unsigned int i=savedindex;i<dots;i++){
-//			println(GenString()+RF("IOLoggerv016::writeJson loop json:")+json+" json2:"+json2);
+			//			println(GenString()+RF("IOLoggerv016::writeJson loop json:")+json+" json2:"+json2);
 			IOLoggerMemStore::FullCell fc=logdata.getIndex(i);
 			uint64_t ts=fc.ts;
 			if(!savedfirstts) {
@@ -237,13 +294,13 @@ class IOLoggerv016: public IOLoggerGen
 			if(!limit || (json.size()+json2.size())<maxsize) {json2+=json;json.erase();}
 			else {savedindexset=true;savedindex=i;return true;}
 		}
-//		println(GenString()+RF("IOLoggerv016::writeJson postloop json:")+json+" json2:"+json2);
+		//		println(GenString()+RF("IOLoggerv016::writeJson postloop json:")+json+" json2:"+json2);
 		json+=RF("]");
 		json2+=json;json.erase();
 		savedindex=0;
 		savedindexset=false;
 		savedfirstts=0;
-//		println(GenString()+RF("IOLoggerv016::writeJson end json:")+json+" json2:"+json2);
+		//		println(GenString()+RF("IOLoggerv016::writeJson end json:")+json+" json2:"+json2);
 		return false;
 	}
 

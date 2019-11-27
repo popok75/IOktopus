@@ -1,6 +1,16 @@
 #ifndef PSYCHRODRIVER_H
 #define PSYCHRODRIVER_H
 
+/*
+ * PsychroDriver is a class implementing IODriver interface for a psychrometer based on 2 thermometers wet & dry bulb
+ * 	- it creates 2x DS18B20 on init through IOFactory (which is not so clean)
+ * 	- relay the tick to the sensors and when get both values calculate psychro RH
+ * 	-
+ *
+ * */
+
+
+
 #include <Math.h>
 
 #include "IODriver.h"
@@ -106,8 +116,9 @@ public:
 		return NAN;
 	};
 
-	bool init() {
 
+
+	bool init() {
 		//	if (!htu.begin()) {println("Couldn't find sensor HTU!");return false;}
  		println(RF("PsychroReader::init on pins:")+to_string(pinwet)+RF(", ")+to_string(pindry));
 
@@ -115,7 +126,6 @@ public:
 		wetbulb=IOFactorycreateDriver(RF("DS18B20"), 100+num,pinswet);
 		if(!wetbulb) return false;
 		wetbulb->init();	// skip init message from sensor, replaced below
-
 
 		std::vector<unsigned int > pinsdry = {pindry};
 		drybulb=IOFactorycreateDriver(RF("DS18B20"), 100+num,pinsdry);
@@ -128,13 +138,16 @@ public:
 	};
 
 
- 	bool sensorTick(){
 
- //		println(RF("Psychro::Driver: sensorTick"));
+ 	bool sensorTick(){
+// 		println(RF("Psychro::Driver: sensorTick"));
  		//bool ret=false;
+ //		wetbulb->debug=true;
+ //		drybulb->debug=true;
+
  		if(waitingwet && wetbulb->sensorTick()){
  			mstimestamp=CLOCK32.getMS();//millis64();
- 			println(RF("PsychroDriver::sensorTick mstimestamp updated with :")+to_string(mstimestamp));
+// 			println(RF("PsychroDriver::sensorTick mstimestamp updated with :")+to_string(mstimestamp));
  			waitingwet=false;
  			if(wetbulb->isConnected(0)) {
  				wetval=wetbulb->value(0);
@@ -149,7 +162,7 @@ public:
  			waitingdry=false;
  			if(drybulb->isConnected(0)) {
  				dryval=drybulb->value(0);
- //			    println(RF("dry bulb updated with :")+to_stringWithPrecision(dryval,2));
+ //		    println(RF("dry bulb updated with :")+to_stringWithPrecision(dryval,2));
  				drydisconnected=false;}
  			else drydisconnected=true;
  			if(wetdisconnected && !waitingwet) {waitingdry=true;waitingwet=true;return true;}
@@ -163,7 +176,7 @@ public:
 					IODriver *tmp=drybulb;drybulb=wetbulb;wetbulb=tmp;
 				}
 				humval=getPsychroEstimate(dryval,wetval);
-//				println(RF("humval updated with :")+to_stringWithPrecision(humval,2));
+				println(RF("humval updated with :")+to_stringWithPrecision(humval,2));
 			}
 			waitingdry=true;waitingwet=true;
 			return true;

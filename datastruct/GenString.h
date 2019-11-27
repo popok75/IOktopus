@@ -4,12 +4,21 @@
 
 #include <string>
 #define GenString std::string
+#undef FTEMPLATE
+#define FTEMPLATE ".irom.text.genstring"
 
 
-
-uint64_t stoull(std::string const& value) {
+uint64_t stoull(std::string const value) {
 	uint64_t result = 0;
-
+	char const* p = value.c_str();
+	char const* q = p + value.size();
+	while (p < q) {
+		result = (result << 1) + (result << 3) + *(p++) - '0';
+	}
+	return result;
+}
+uint64_t lstoull(std::string const &value) {
+	uint64_t result = 0;
 	char const* p = value.c_str();
 	char const* q = p + value.size();
 	while (p < q) {

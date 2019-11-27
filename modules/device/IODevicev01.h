@@ -98,7 +98,6 @@ public:
 
 		}
 
-
 		println(GenString()+RF("IODevicev01::notify ")+emap->values.asJson());
 		emit(RF(UPDATE_MODEL_EVENT),emap);	//path is name of event object while reading is the event listened to
 

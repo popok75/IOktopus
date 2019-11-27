@@ -13,7 +13,7 @@
 
 
 
-class IODataGen : public EventListener, public TimerAsyncEmitter
+class IODataGen : public EventListener, public DefaultAsyncEmitter
 {
 protected:
 	GenTreeMap data;	// devices should be addressed at /devices/ as if part of the data

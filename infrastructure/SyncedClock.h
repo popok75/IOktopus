@@ -111,11 +111,18 @@ private:
 		return ms;
 	};
 public:
+//	uint64_t save=0;
 	uint64_t getMS(){
 		update();	//if needed
 		uint64_t full=diff+mymillis();
-//		println(GenString()+"Clock::getBoottime> getMS full: "+to_string(full)+ " mymillis():"+to_string(mymillis()));
+	//	println(GenString()+"Clock::getBoottime> getMS full: "+to_string(full)+ " mymillis():"+to_string(mymillis()));
+	//	if(save>full){	println(GenString()+"problem here clock going backward");	}
+	//	save=full;
+
+//		uint64_t now=millis64();
+//		std::cout << " millis64:" << to_string(now) << " vs. clock : "<< full <<std::endl;
 		return full;
+
 	}
 
 	uint64_t getDiff(){
@@ -142,6 +149,7 @@ public:
 
 		clean=clean1;
 		println(GenString()+RF("Clock::resyncMS> new clock: ")+to_string(getMS()));
+
 		uint32_t sec=getSec();
 		println(ctime((time_t*)(&sec)));
 		for(ClockListener* s:listeners){

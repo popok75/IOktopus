@@ -10,6 +10,9 @@
 
 #include "../../../infrastructure/SyncedClock.h"
 
+#undef FTEMPLATE
+#define FTEMPLATE ".irom.text.clocktriggerprocess"
+
 #define CLOCKTRIGGERPROCESSNAME "clocktrigger"
 #define ARGSBEFOREDURATIONS 3
 
@@ -59,7 +62,7 @@ public:
 		//		std::cout << "pastdur:" << pastdur <<std::endl;
 		ts0-=pastdur;
 		savedts0=ts0;
-		ts0=ts0/1000;	//convert to seconds
+		//ts0=ts0/1000;	//convert to seconds
 		savedstep=step;
 		GenString ts0str=to_string(ts0);
 		// this info is ts0, but recalculated and possibly updated each step
@@ -84,7 +87,7 @@ public:
 		if(!isDigit(stepstr)) {stopTimer();return;}		//error
 		unsigned step=strToUint64(stepstr);
 		if(incrementstep) step++;
-		std::cout << "ClocktriggerProcess:: start next step :" << step <<std::endl;
+//		std::cout << "ClocktriggerProcess:: start next step :" << step <<std::endl;
 
 		if(cycstr=="1") step=step%(args.size()-ARGSBEFOREDURATIONS);	//if cycle, restart at 0
 		else if(step>(args.size()-ARGSBEFOREDURATIONS)) {stopTimer();return ;}		//error
@@ -115,7 +118,7 @@ public:
 		// get the step,
 		// increment it,
 		// start next timer
-		std::cout << "timer working" <<std::endl;
+//		std::cout << "timer working" <<std::endl;
 		react=false;	// allow change of input arguments without reacting
 		timerstarted=false;
 		startNextStep(true);
@@ -157,17 +160,17 @@ public:
 
 		unsigned extraargs=ARGSBEFOREDURATIONS;	//before durations
 		if(args.size()<(extraargs+1)) return;				// not enough arguments
-		GenString startstop=args.front();
+		GenString startstop=args.front(),startstopval=getArgumentValue(startstop);
 		GenString steppath=args[2];
-		if(!timerstarted && getArgumentValue(startstop)=="1") {
+		if(!timerstarted && startstopval=="1") {
 			startNextStep();
 			return;
 		}
-		if(timerstarted && getArgumentValue(startstop)=="0") {
+		if(timerstarted && startstopval=="0") {
 			stopTimer();
 			return;
 		}
-		if(timerstarted && getArgumentValue(startstop)=="1") {
+		if(timerstarted && startstopval=="1") {
 			GenString stepstr=getArgumentValue(steppath);
 			if(isDigit(stepstr)){
 				if(strToUint64(stepstr)!=savedstep) {				// change of step

@@ -10,7 +10,11 @@
  * 		- separating the events into init, enable, disable,
  * 		- adding protection against self call
  */
+#undef FTEMPLATE
+#define FTEMPLATE ".irom.text.fullactionprocess"
 
+#define ARGSNAME "args"
+#define RESULTSNAME "results"
 
 class FullActionProcess : public ActionProcess {
 public:
@@ -65,7 +69,7 @@ void FullActionProcess::updateArgumentValue(GenString argname, GenString val){
 
 class BasicActionProcess : public FullActionProcess {
 private:
-	bool enabledOperation=true;	// must not be modified by derived classes
+	//bool enabledOperation=true;	// to call enable/disable, must not be modified by derived classes
 
 	bool selfcalling=false;
 	ticket_t myticket=0;
@@ -74,7 +78,7 @@ public:
 	bool inited=false;
 	bool react=true;
 
-	bool isEnabled(){return enabledOperation;}
+	bool isEnabled(){return react;}
 	virtual void init(){};
 	virtual void enable(){};	// called when operation active change state, restore events
 	virtual void disable(){};	//called when operation active change state, also stop events, can be overloaded
@@ -94,18 +98,20 @@ public:
 		if(myticket>0 && getModel()->getPropagateTicket()<=myticket) {
 			return;	// prevent self notification asynchronous
 		}
-
-		if(!inited) {enabledOperation=isOperationActive();inited=true;init(); return;}
-		if(enabledOperation  && !isOperationActive()) {enabledOperation=false;react=false;disable();}
-		if(!enabledOperation  && isOperationActive()) {enabledOperation=true;react=true;enable();}
+//		std::cout << "current model "<< getModel()->getAsJson()<<std::endl;
+		bool active=isOperationActive();
+		if(!inited) {react=active;inited=true;init();}	// at init, we initialize and we react straight away
+		if(react  && !active) {react=false;disable();}
+		if(!react  && active) {react=true;enable();}
 		if(react) {	// if react is overriden in disable, allow to receive events when not active
-			std::vector<GenString> args=getArgumentNames(RF("args"));
-			std::vector<GenString> results=getArgumentNames(RF("results"));
-			for(GenString name:args) std::cout << "BasicActionProcess:: arg: " << name <<", val: "<<getArgumentValue(name) <<std::endl;
-			for(GenString name:results) std::cout << "BasicActionProcess:: result: " << name <<", val: "<<getArgumentValue(name) <<std::endl;
+			std::vector<GenString> args=getArgumentNames(RF(ARGSNAME));
+			std::vector<GenString> results=getArgumentNames(RF(RESULTSNAME));
+	//		for(GenString name:args) std::cout << "BasicActionProcess:: arg: " << name <<", val: "<<getArgumentValue(name) <<std::endl;
+	//		for(GenString name:results) std::cout << "BasicActionProcess:: result: " << name <<", val: "<<getArgumentValue(name) <<std::endl;
 			basicprocess(args,results,path,e);
 		}
 	};	// each notification goes here
+
 	// to implement by  user-defined action process
 	//	virtual ActionProcess* duplicate()=0;
 	//	virtual bool named(GenString name)=0;

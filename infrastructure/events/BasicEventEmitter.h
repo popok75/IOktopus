@@ -35,6 +35,7 @@ public:
 
 	void on(EventListener *er){on("",er);};
 	bool emit(Event*e){return emit("",e);};
+	bool hasListener(GenString ename);
 };
 
 
@@ -47,6 +48,8 @@ void BasicEventEmitter::once(GenString ename, EventListener *er)
 {	 Subscription sub(er,true);
 listeners.set(ename, sub);
 };
+
+bool BasicEventEmitter::hasListener(GenString ename){return listeners.has(ename);}
 
 bool BasicEventEmitter::emit(GenString ename, Event*event){//sync emit,
 	bool b=false;
@@ -100,11 +103,14 @@ public:
 
 	virtual bool emit(GenString key, Event *event=0){	// dont propagate, just push for later
 
+
+		if(!hasListener(key)) return false; 	// drop if there is no listeners for this key
+
 		ticket_t tic=nextEmitTicket();
 
 
 
-		//std::cout << "IODataEmitter::emit path :" << path << std::endl;
+//		std::cout << "AsyncBasicEventEmitter::emit path :" << key << " " << tic << std::endl;
 		for(unsigned int i=0;i<eventtasks.size();i++){
 			if(eventtasks[i].equals(key,event)) {
 				eventtasks.erase(eventtasks.begin()+i);
@@ -120,12 +126,15 @@ public:
 
 	virtual bool propagateOnce(){	// return false if there in no more events
 		if(eventtasks.empty()) return false;
-		EventTask et=eventtasks.back();
-		eventtasks.pop_back();
+
+		EventTask et=eventtasks.front();	// FIFO to preserve order
+
+		eventtasks.erase(eventtasks.begin());
 
 		//bool b=
-	//	std::cout<< "propagateOnce:: emitting key:" << et.key << ", event:" <<et.event <<std::endl;
+//		std::cout<< "AsyncBasicEventEmitter:propagateOnce::  key:" << et.key << " "<< et.ticketnum<<", event:" <<et.event <<std::endl;
 		lastPropagateTicket=et.ticketnum;
+
 		BasicEventEmitter::emit(et.key,et.event);// Returns true if the event had listeners, false otherwise.
 		delete et.event;
 		return !eventtasks.empty();
@@ -143,13 +152,19 @@ class TimerAsyncEmitter: public AsyncBasicEventEmitter{
 	// separate async emitter part and timer part
 	static void statictick(TimerAsyncEmitter *emitter){if(emitter) emitter->tick();}	// dangerous, but safe here our object is not supposed to disappear
 	void tick(){
+//		bool b;
+//		while(b) b=propagateOnce();
 		bool b=propagateOnce();
-		if(b) dataeventtimer.once_ms(INTER_EVENT_MS, statictick, this);
+
+		if(b) {
+//			std::cout <<"TimerAsyncEmitter oncems"<<std::endl;
+			dataeventtimer.once_ms(INTER_EVENT_MS, statictick, this);
+		}
 	};
 public:
 	virtual bool emit(GenString key, Event *event=0){	// dont propagate, just push for later
-
 		AsyncBasicEventEmitter::emit(key,event);
+//		std::cout <<"TimerAsyncEmitter oncems 2"<<std::endl;
 		dataeventtimer.once_ms(INTER_EVENT_MS, statictick, this);
 		return true;
 	};

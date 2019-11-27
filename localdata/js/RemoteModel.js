@@ -39,7 +39,8 @@ class RemoteModel extends EventEmitter {
 			var b=this.parseContent(t,obj);
 			if(!b) return;
 			if(!obj.result || obj.result.length==0) return ;
-
+			console.log("Data model received:");
+			console.log(obj.result);
 			this.updateServerOnline("data");
 			this.datats=new Date().getTime();
 			this.data=obj.result;				
@@ -56,7 +57,8 @@ class RemoteModel extends EventEmitter {
 			var b=this.parseContent(t,obj);
 			if(!b) return;
 			if(!obj.result || obj.result.length==0) return ;
-
+			console.log("Data model received:");
+			console.log(obj.result);
 			this.updateServerOnline("data");
 			this.datats=new Date().getTime();
 			this.data=obj.result;				
@@ -78,7 +80,7 @@ class RemoteModel extends EventEmitter {
 			this.reload();
 		}.bind(this), this.refreshperiodsec*1000);
 
-		this.rlog.init(this);
+		this.rlog.init(this);	//strange we init this here, 
 		console.log("Model init ended");
 
 	}
@@ -150,12 +152,16 @@ class RemoteModel extends EventEmitter {
 			// if ok notify back 
 			if(t=="OK"){
 				this.setValue(path,value);
-				this.emit("confirmChange",path);				
+				//var oldval=this.findByPath(path);
+				var e={};e[path]=value;
+				this.emit("confirmChange",e);				
 			} else if(t=="NOTOK") {
-				this.emit("cancelChange",path);
+				var oldval=this.findByPath(path);
+				this.emit("cancelChange",{path:oldval});
 			}
 		}.bind(this),
-		{method:"PUT",tosend:leaf+"="+value});
+		{method:"PUT",tosend:leaf+"#="+value});	
+		// # after path for modificiation without link follow
 	
 	};
 
@@ -178,32 +184,40 @@ class RemoteLog {
 	init(rmodel){
 		this.loadlog(rmodel);
 		this.refreshInterval=setInterval(function(){
-			this.reloadlog(rmodel);
+			if(this.loaded) this.reloadlog(rmodel);
+			else this.loadlog(rmodel);
 		}.bind(this), this.logrefreshperiodsec*1000);
 
 	}
 	
+	processLogLoad(t,xhttp,tag){
+		this.updateServerStatus(xhttp);
+		var obj={};
+		var b=this.parseContent(t,obj);
+		if(!b) return;
+		if(!obj.result || obj.result.length==0) return ;
+
+		this.updateServerOnline("log");
+		b=this.rlog.processLog(obj.result);		
+		delete obj.result;
+		if(b) {
+		//	var lognames=Object.keys( this.rlog.lognames);
+			var obj=getSeriesLogv15(this.log);
+			this.series=obj.series;//, lognames);
+			this.labels=obj.labels;//getSeriesLogv15(this.log);			
+//			this.labels=['Date'].concat(getUsedColumns(this.log,lognames));
+			this.emit(tag,""); // emit
+		}
+		this.rlog.loaded=true;
+	}
 	
 	//////////////////////////////
 	loadlog(o){
 		this.o=o;
 		//	this.loadEmit(this.espip+"/log","logload","log","logts");
 		loadremote(o.espip+LOGURL,function(t,xhttp){
-			this.updateServerStatus(xhttp);
-			var obj={};
-			var b=this.parseContent(t,obj);
-			if(!b) return;
-			if(!obj.result || obj.result.length==0) return ;
-
-			this.updateServerOnline("log");
-			b=this.rlog.processLog(obj.result);		
-			delete obj.result;
-			if(b) {
-				this.series=getSeriesLogv15(this.log, Object.keys( this.rlog.lognames));
-				this.labels=['Date'].concat(Object.keys( this.rlog.lognames));
-				this.emit("logload",""); // emit
-			}
-		}.bind(o),
+			this.processLogLoad.bind(this.o)(t,xhttp,"logload");
+		}.bind(this),
 		o.prerequest.bind(o));
 	};
 
@@ -217,6 +231,9 @@ class RemoteLog {
 			if(isDigit(xtra)) xtra="?fromTS="+parseInt(xtra);
 			else xtra="";
 			loadremote(o.espip+LOGURL+xtra,function(t,xhttp){			// add last ts here 
+				this.processLogLoad.bind(this.o)(t,xhttp,"logreload");
+				console.log(xtra);
+				/*
 				this.updateServerStatus(xhttp);
 				var obj={};
 				var b=this.parseContent(t,obj);
@@ -230,8 +247,8 @@ class RemoteLog {
 					this.series=getSeriesLogv15(this.log, Object.keys( this.rlog.lognames));
 					this.labels=['Date'].concat(Object.keys( this.rlog.lognames));
 					this.emit("logreload",""); // emit
-				}
-			}.bind(o),
+				}*/
+			}.bind(this),
 			o.prerequest.bind(o));
 			
 		} else if(this.logversion=="0.20"){
@@ -432,7 +449,7 @@ class RemoteLog {
 			startline=i;
 			break;
 		}
-		console.log("mergeLog : "+data[1]);
+	//		console.log("mergeLog : "+data[1]);
 		for (var i in data) {
 			if(data[i][0]==NEWSTREAMTAG) nextns=true;
 			if(isNaN(parseInt(data[i][0]))) continue;
@@ -504,31 +521,70 @@ class RemoteLog {
 
 };
 
-//////////////////////////////////////
-function getSeriesLogv15(data0,names){
-	var series=[];
-	var i=1;
-	var size=Object.keys(names).length+1;
 
-	var data=data0.slice(0);
-	var fnames={};//=data.shift();
-	for(var j in data){
-		var b1=!Array.isArray(data[j]);
-		var b2=!data[j].sync;
-		if(!Array.isArray(data[j]) && !data[j].sync){// an object not array that has no sync property
-			fnames=data[j];
-			break;
+
+
+
+
+//////////////////////////////////////
+function getSeriesLogv15(data0){
+	
+	function getGfd(data,usedix){
+		var fnames={};//=data.shift();
+		for(var j in data){
+			var b1=!Array.isArray(data[j]);
+			var b2=!data[j].sync;
+			if(!Array.isArray(data[j]) && !data[j].sync){// an object not array that has no sync property
+				fnames=data[j];
+				break;}
 		}
+		var gfd={},nn=0;
+		for(var n in usedix){
+			for(var m in fnames){
+				if(usedix[n] && fnames[m]==n) {
+					gfd[fnames[m]]=nn;nn++; break;}}}
+		return gfd;
 	}
 	
-	var gfd={};
-	for(var n in names){
-		for(var m in fnames){
-			if(m==names[n]) {gfd[fnames[m]]=Number.parseInt(n); break;} 
-		}
+	function getUsedColumns(data,names){//},names,gfd){
+	//	if(!gfd) gfd=getGfd(data,names);
+		//var gfd={};
+		//var names=data[0];
+		//for(var i in names) gfd[];	//gfd is the names per
+		var sz=Object.keys(names).length;
+		var usedindexes=Array(sz-1);
+		usedindexes.fill(null);
+		for(var j in data){
+			var l=data[j];
+			if(!Array.isArray(l)) continue;
+			if(isNaN(parseInt(l[0]))) continue;
+			for(var i=1;i<l.length;i+=2){
+				//var nc=gfd[l[i]];
+				usedindexes[l[i]]=1;}
+			}
+//	 	var fusedindexes=[];
+//	 	for(var k in usedindexes) if(usedindexes[k]==1) fusedindexes.push(names[k+1]);
+		return usedindexes;
+	};
+
+	function columnToArray(columns){
+		var arr=[];
+		for(var k in columns){arr[columns[k]]=k;}
+		return arr;
 	}
+	
+	var series=[];
+	var i=1;
+	var labels0=['Date'].concat(columnToArray(data0[0]));
+	var usedindexes=getUsedColumns(data0,labels0);	// first we want the column indexes that are not entirely empty
+	var gfd=getGfd(data0,usedindexes);
+	var labels=[];
+	for(var j=0;j<usedindexes.length;j++) if(usedindexes[j]) labels.push(labels0[j+1]);
+	var sz=labels.length;
+	var data=data0.slice(0);
+	
 //	var firstts=0;
-	var sz=names.length;
+	 
  //	var names2=names.splice(0);
 //	names2.splice(0,0,"Date");
 //	series.push(names2);
@@ -543,13 +599,17 @@ function getSeriesLogv15(data0,names){
 		gl.fill(null);
 		gl[0]=new Date(ms);
 		for(var i=1;i<l.length;i+=2){
-			var nc=gfd[l[i]]+1;
+			var nc=gfd[l[i]];
+			if(typeof(nc)=="undefined") continue;
+		 
 			var nv=Number.parseFloat(l[i+1]);
-			gl[nc]=nv;
+			gl[nc+1]=nv;
 		}
 		series.push(gl);
 	}
-	return series;
+	//var labels=['Date'].concat(usedindexes);
+	
+	return {series:series,labels:['Date'].concat(labels)};
 }
 
 export {RemoteModel};

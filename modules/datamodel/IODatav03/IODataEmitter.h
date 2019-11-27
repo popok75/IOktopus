@@ -41,8 +41,11 @@ protected:
 		return vect;
 	}
 
+	// method for modificiation without link follow : # after path
 	bool isNoFollowLink(GenString &path){return path.back()==LINKCHAR;}; //if contain # as last character then, dont follow the link chain
-	GenString getNoFollowLink(GenString path){path.erase(0,1);return path;};
+	GenString getNoFollowLink(GenString path){
+		if(!isNoFollowLink(path)) return path;
+		path.pop_back();return path;};
 
 	GenString resolveLink(GenString path){
 		if(isNoFollowLink(path)) return getNoFollowLink(path);	// if no follow, return the link without #
@@ -103,7 +106,6 @@ public:
 
 protected:
 	bool emitIODataEvent(GenString path, GenString tag){
-
 
 		if(isNoFollowLink(path)) return emit(getNoFollowLink(path)+SEPCHAR+tag);		// if path provided contain '#' as last char
 		// if node is change we still need backward links // applies a.Always rule

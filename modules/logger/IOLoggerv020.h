@@ -87,7 +87,7 @@ public:
 
 	bool notify(GenString command, Event *event){
 		if(command==RF(MODEL_UPDATED_EVENT)){	// use events that has both ts and val
-//			println("IOLoggerv020::notify MODELUPDATEDEVENT");
+			println("IOLoggerv020::notify MODELUPDATEDEVENT");
 			StringMapEvent *evmap=0;
 			if(event->getClassType()==StringMapEventTYPE) evmap=(StringMapEvent*)(event);
 			if(!evmap) return false;

@@ -397,7 +397,13 @@ public:
 		return true;
 	}
 
-
+/*
+ To change values of the data model, a request is sent with a path :
+  	  	  - starting with "/data/"
+ 	 	  - then the node path in the data model, e.g. "/data/nodes/humidity"
+ 	 	  - then as PUT/GET arguments the values "?value=0&ts=0".
+ 	 	  - "delete" is a special argument name that result in subpath deletion, e.g. "/data/nodes/humidity?delete=ts" or "/data/nodes?delete=humidity"
+ */
 
 
 	/////////////////////////////////////
@@ -410,12 +416,18 @@ public:
 
 		GenString datapath=path.substr(5);	// minus "/data"
 		StringMapEvent emap=StringMapEvent();
+	//	StringMapEvent todelete=StringMapEvent();
+
 		for(auto it : args) {
 			println(GenString()+"Found argument : '"+it.first+"'='"+it.second+"'");
-			emap.values.set(datapath+'/'+it.first,it.second);
+			if(it.first=="delete") emap.values.set("delete",datapath+'/'+it.second);	//only one delete per request
+			else emap.values.set(datapath+'/'+it.first,it.second);
 		}	// TODO: we should check if this argument is valid but how to know ? syntax-based ?
 
-		println(GenString()+RF("IOServerv01::serveDataNode ")+emap.values.asJson());
+//		println(GenString()+RF("IOServerv01::serveDataNode delete ")+emap.values.asJson());
+//		emit(RF("updateModel"),&todelete);	//path is name of event object while reading is the event listened to
+
+		println(GenString()+RF("IOServerv01::serveDataNode update ")+emap.values.asJson());
 		emit(RF("updateModel"),&emap);	//path is name of event object while reading is the event listened to
 
 		if(!emap.ok) {
@@ -426,6 +438,7 @@ public:
 		server.send(200, RF("text/html"),RF("OK"));	//is the server duplicating the string (no reason)
 		return true;
 	}
+
 
 
 	/////////////////////////////////////

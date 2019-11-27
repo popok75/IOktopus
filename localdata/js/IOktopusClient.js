@@ -30,7 +30,7 @@ function initclient() {
 	var controller=new Controller(model,view);
 	model.init();
 	geid('userinterface').innerHTML="client initialized";
-	geid('title').innerHTML="IOktopus v0.3 growing...";
+	geid('title').innerHTML="IOktopus v0.35 growing...";
 }
 
 

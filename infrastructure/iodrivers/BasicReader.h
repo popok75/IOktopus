@@ -2,11 +2,17 @@
 #define GENREADER_H
 
 
+/*
+ * BasicReader is a class derived from IOReader and contains an IODriver (the sensor object)
+ * 				- it emit an init event with unit & type
+ * 				- it relays the tick and emit an event with value when IODriver has a new one (sensorTick return true)
+ * */
+
 #include "IODriver.h"
 #include "IOReader.h"
 
 #undef FTEMPLATE
-#define FTEMPLATE ".irom.text.genreader"
+#define FTEMPLATE ".irom.text.basicreader"
 
 #ifndef VALUE_FIELD
 #define VALUE_FIELD "value"
@@ -28,15 +34,16 @@ class BasicReader : public IOReader
 {
 	IODriver *iodriver=0;
 public:
-	BasicReader(IODriver* iodriver0):iodriver(iodriver0){
+	BasicReader(IODriver* iodriver0):IOReader(),iodriver(iodriver0){
 	//	println(GenString()+"BasicReader::constructor "+to_string((uint64_t)iodriver0));
+	//	ticker2.debug=true;
 	}
 	~BasicReader(){if(iodriver) delete iodriver;}
 	bool isNamed(std::string name){
 		return false;};
 
 	bool init() {
-		println(RF("BasicReader::init ")+to_string((uint64_t)iodriver));
+//		println(RF("BasicReader::init ")+to_string((uint64_t)iodriver));
 		if(!iodriver || !iodriver->init()) return false;
 
 		tickms=iodriver->tickms();
@@ -54,20 +61,22 @@ public:
 		GenString channelname=iodriver->channelName(channel);
 		if(channeltype==RF(HUMIDITY_CHANNEL_TYPE)){//		std::multimap<std::string,std::string>valmap={{"Humidity/type","input"},{"Humidity/unit","%"}};//,{"ts",to_string(CLOCK.getTimeMS())}};
 			StringMapEvent arg({{channelname+'/'+RF(TYPE_FIELD),RF(INPUT_TYPE_VALUE)},{channelname+'/'+RF(UNIT_FIELD),RF("%")}});
-	//		emit(&arg);
+			emit(&arg);
 		}
 		if(channeltype==RF(TEMPERATURE_CHANNEL_TYPE)){//		valmap={{"Temperature/type","input"},{"Temperature/unit","°C"}};//,{"ts",to_string(CLOCK.getTimeMS())}};
 			StringMapEvent arg2({{channelname+'/'+RF(TYPE_FIELD),RF(INPUT_TYPE_VALUE)},{channelname+'/'+RF(UNIT_FIELD),RF("°C")}});
-	//		emit(&arg2);
+			emit(&arg2);
 		}
 	}
 
-	bool sensorTick(){	// read temp, then hum
-	//	println(GenString()+"BasicReader::sensorTick"+to_string((uint64_t)iodriver));
+	bool saved=false;
+
+	bool sensorTick(){
+//		println(GenString()+"BasicReader::sensorTick @ "+to_string((uint64_t)this));
 #ifdef ESP8266
 //	print(RF("BasicReader::sensorTick - memory :"));	 println(ESP.getFreeHeap(),DEC);
 #endif
-
+		saved=false;
 		if(!iodriver) return false;
 		if(iodriver->sensorTick()){
 			// for each channel, see if connected save the value according to name, if not save disconnected
@@ -80,25 +89,31 @@ public:
 				}
 				else saveValue(iodriver->channelName(i),RF(DISCONNECTED_STATE));
 			}
+			if(!saved){
+			//	std::cout << "BasicReader::sensorTick problem here returning true without saving"<<std::endl;
+			}
 			return true;
 		};
-
+//		println(GenString()+"BasicReader::sensorTick returning false @ "+to_string((uint64_t)this));
 		return false;
 	}
 
 
 
-
 	void saveValue(std::string name,std::string value,uint64_t tsms=0){
 		save(tsms);
+		saved=true;
 
 		StringMapEvent arg({{name+'/'+RF(VALUE_FIELD),value}});
-		if(tsms) arg.values.set(name+'/'+RF(TIMESTAMP_FIELD),to_string(tsms));
+		if(tsms) {
+			arg.values.set(name+'/'+RF(TIMESTAMP_FIELD),to_string(tsms));
+		}
 	#ifdef ESP8266
 	#ifdef MEMDEBUG
 			print(RF("IOReader::saveValue : free memory :"));	println(ESP.getFreeHeap(),DEC);
 	#endif
 	#endif
+	//	std::cout << "BasicReader::saveValue event: " << arg.values.asJson()<<std::endl;
 	 	emit(&arg); //use 64bit timestamp here
 
 	}

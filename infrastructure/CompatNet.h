@@ -16,7 +16,9 @@ class WifiMan : public EventListener {
 public:
 	bool notify(std::string, Event*){return false;};
 	static void initFromConfig(GenMap *config){
-		CLOCK32.resyncSec(millis64()/1000);
+		CLOCK32.resyncSec(millis64()/1000);	//cause up to 1second lag with real time, but simulate NTP resync on esp
+		//CLOCK32.resyncMS(millis64());
+
 	};
 	static void reconnect(){};
 	static void startAP(){};

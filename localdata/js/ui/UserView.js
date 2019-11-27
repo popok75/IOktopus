@@ -23,6 +23,20 @@ class UserView extends EventEmitter {
 		this.panel.addPanel("operations","display:inline-block;");
 	}
 
+	removeNode(nodeview,name,group,subgroup){
+		console.log(name);
+		if(this.panel.hasComponent(group)){
+			var grouppanel=this.panel.getComponent(group);
+			if(grouppanel.hasComponent(subgroup)) {
+				var subgrouppanel = grouppanel.getComponent(subgroup);
+				subgrouppanel.removeComponent(nodeview.getComponent());
+				if(!subgrouppanel.components.length) grouppanel.removeComponent(subgrouppanel);
+				if(nodeview.selfRemove) nodeview.selfRemove();
+				//if empty subgroup, remove subgroup as well
+			}
+		}
+		
+	}
 
 	createNode(name,group,subgroup,data){
 		var grouppanel,subgrouppanel;
@@ -61,7 +75,8 @@ class UserView extends EventEmitter {
 	updateLogView(data,labels,nodes){
 		if(!data || data.length==0 || data[0].length==0) {console.log("Log data table received from /log/ empty.");return;}
 		var tooshort=true;
-		for(var j in data) if(data[j].length>1) {tooshort=false;break;}
+		if(data.length>1)
+			for(var j in data) if(data[j].length>1) {tooshort=false;break;}
 		if(tooshort) return;
 
 		if(!this.logview) {
@@ -69,8 +84,8 @@ class UserView extends EventEmitter {
 			//this.panel.addComponent(this.logview.getComponent());
 			var loghtml=this.logview.getComponent().getHtml();	
 			geid('loginterface').innerHTML=loghtml;	//should not be added like that
-			this.logview.init();
-		} else this.logview.updateGraph(data,labels);		
+			this.logview.init();	// is it really useful to have a separate init ? yes, we need to add the component to the ui before init
+		} else this.logview.updateGraph(data,labels,nodes);		
 	}
 
 	
@@ -81,6 +96,8 @@ class UserView extends EventEmitter {
 	
 	notifyConfirm(event){
 		console.log(event);
+		// update value and revert to black
+		
 	}
 	notifyCancel(event){
 		console.log(event);
@@ -968,8 +985,10 @@ class LogGraphicView {
 		this.rawdata=data;
 		this.labels=labels;
 		this.nodes=nodes;
-		this.component= new Panel(this.name+"container","","log ("+this.countPoints(data)+" time point)");
+//		this.component= new Panel(this.name+"container","","log ("+this.countPoints(data)+" time point)");
+		this.component= new DivComponent(this.name+"container","","log ("+this.countPoints(data)+" time point)");
 		this.graphgroup=new LogGraphGroup(this.name,this.component,nodes);
+	//	this.graphgroup.init(this.rawdata,this.labels,this.nodes);
 	}
 
 	countPoints(data){	//count lines starting with a number
@@ -980,18 +999,17 @@ class LogGraphicView {
 		}
 		return c;*/
 	}
-
+ 
 	init(){
 //		this.addGraph(this.rawdata);
 //		}addGraph(data){ 
 		this.graphgroup.init(this.rawdata,this.labels,this.nodes);
 	}
+ 
 
 
-
-	updateGraph(data,labels){
-		geid(this.name+"container").children[0].children[0].innerHTML="log ("+this.countPoints(data)+" time point)";// should move this to panel.setlegend
-		this.graphgroup.update(data,labels);	// he is not supposed to change data object !!!
+	updateGraph(data,labels,nodes){
+		this.graphgroup.update(data,labels,nodes);	// he is not supposed to change data object !!!
 		//.innerHTML=this.component.getChildrenHtml();	//update visible result
 	}
 

@@ -8,6 +8,7 @@
 #define ESP8266BUILD// need to redefine FTEMPLATE every few headers // https://www.bountysource.com/issues/46510369-using-pstr-and-progmem-string-with-template-class-causes-section-type-conflict //#define FF(string_literal) (reinterpret_cast<const __FlashStringHelper *>(((__extension__({static const char __c[] __attribute__((section(".irom.text.template"))) = ((string_literal)); &__c[0];})))))//#define RF(x) String(FF(x)).c_str()
 #define FFX(string_literal) (reinterpret_cast<const __FlashStringHelper *>(((__extension__({static const char __c[] __attribute__((section(FTEMPLATE))) = ((string_literal)); &__c[0];})))))
 #define RF(x) String(FFX(x)).c_str()
+#define FTEMPLATE ".irom.text.rf"
 #else
 #define RF(x) x
 #endif
@@ -168,6 +169,7 @@ void setup(){
 
 	// create log
 	iologger= IOLoggerFactory::create(&config.configmap);
+	//iologger->on(RF(GET_DATA_SUBVALUES_EVENT),iodata);
 	iodata->on(RF("modelUpdated"),iologger);	// modelUpdated event fired by data will trigger iologger
 	ioserver->on(RF("getLogJson"),iologger); 	// the server will use events to get the log as json, again using sync event result
 

@@ -6,7 +6,10 @@
 
 #include "../../../infrastructure/CompatFS.h"
 
-#define NODESPATH RF("/nodes/")
+#undef FTEMPLATE
+#define FTEMPLATE ".irom.text.basiciodatakit"
+
+#define NODESPATH "/nodes/"
 
 /*	This file is the most user relevant part of IODatav03 model: BasicActionProcess class can be extended by user programmed actions/processes.
  *
@@ -32,7 +35,7 @@ public:
 	ActionProcess* duplicate(){return new CompareProcess();};
 	void init(){inited=true;}
 	virtual void basicprocess(std::vector<GenString> args,std::vector<GenString> results,GenString path, Event *e){
-		std::cout << "process compare :"<< path << ", my path :" <<getOperationPath()<<std::endl;
+	//	std::cout << "process compare :"<< path << ", my path :" <<getOperationPath()<<std::endl;
 
 		if(args.size()==3 && results.size()){// check we have the right number of argument
 			GenString left=getArgumentValue(args[0]);
@@ -47,10 +50,10 @@ public:
 			double dright=strToDouble(right);
 			char result;
 			if(operless && dleft<dright) result='1';
-			if(!operless && dleft>=dright) result='1';
+			else if(!operless && dleft>=dright) result='1';
 			else result='0';
 			updateArgumentValue(results[0],GenString()+result);//delay response to avoid congesting event processing ?
-			for(GenString name:results) std::cout << "result:" << name <<", val:"<<getArgumentValue(name) <<std::endl;
+	//		for(GenString name:results) std::cout << "result:" << name <<", val:"<<getArgumentValue(name) <<std::endl;
 		}
 
 	};	// each notification goes here
@@ -68,7 +71,7 @@ public:
 	ActionProcess* duplicate(){return new SelectassignProcess();};
 
 	virtual void basicprocess(std::vector<GenString> args,std::vector<GenString> results,GenString path, Event *e){
-		std::cout << "process selectassign : "<< path << ", my path : " <<getOperationPath()<<std::endl;
+//		std::cout << "process selectassign : "<< path << ", my path : " <<getOperationPath()<<std::endl;
 		// maybe we should test if link or get raw value for both args and results
 		if(results.empty()) return;									// error : result var not defined
 		GenString channel=getArgumentValue(args[0]);
@@ -78,8 +81,8 @@ public:
 			GenString valtocopy=getArgumentValue(args[nchannel+1]);
 			GenString sub=getSubArgumentName(results[0],nchannel);
 			updateArgumentValue(sub,valtocopy);
-			std::cout << "-result: " << sub <<", val: "<<getArgumentValue(sub) <<std::endl;
-			for(GenString name:results) std::cout << "result: " << name <<", val: "<<getArgumentValue(name) <<std::endl;
+	//		std::cout << "-result: " << sub <<", val: "<<getArgumentValue(sub) <<std::endl;
+	//		for(GenString name:results) std::cout << "result: " << name <<", val: "<<getArgumentValue(name) <<std::endl;
 		}
 	};	// each notification goes here
 	virtual bool named(GenString name){if(name==RF(SELECTASSIGNPROCESSNAME)) return true; else return false;};
@@ -125,9 +128,9 @@ public:
 	}
 
 	static  IODatav03* createIODatav03AndCo(){
-		GenString actionfile="datafiles/action_defs.json";
-		GenString opfile="datafiles/operation_defs.json";
-		GenString opdatafile="datafiles/operation_data.json";
+		GenString actionfile="/datafiles/action_defs.json";
+		GenString opfile="/datafiles/operation_defs.json";
+		GenString opdatafile="/datafiles/operation_data.json";
 		return setupModel(opdatafile, opfile, actionfile);
 	};
 
@@ -135,7 +138,7 @@ public:
 		IODatav03* datamodel=new IODatav03();
 
 		MinMaxModule *minmaxmod=new MinMaxModule();
-		datamodel->on(NODESPATH,WRITETAG,minmaxmod);
+		datamodel->on(RF(NODESPATH),WRITETAG,minmaxmod);
 
 		OperationLib *oplib=new OperationLib();
 		unsigned int s;
@@ -143,8 +146,8 @@ public:
 		datamodel->addPlugIn(oplib);
 		datamodel->loadJSONContent(CURFS.readFileToString(opdatafile,s));
 
-		std::cout << "DataModel :" << std::endl;
-		std::cout << datamodel->getAsJson() << std::endl;
+	//	std::cout << "DataModel :" << std::endl;
+	//	std::cout << datamodel->getAsJson() << std::endl;
 
 
 		oplib->getDefinitions()->loadOperationJSONContent(CURFS.readFileToString(opfile,s));
@@ -154,8 +157,8 @@ public:
 
 		oplib->build();	// subscribe to nodes/op values and conform op data
 
-		std::cout << "DataModel :" << std::endl;
-		std::cout << datamodel->getAsJson() << std::endl;
+	//	std::cout << "DataModel :" << std::endl;
+	//	std::cout << datamodel->getAsJson() << std::endl;
 
 		return datamodel;
 	}

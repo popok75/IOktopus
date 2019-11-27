@@ -71,7 +71,7 @@ public:
 */
 //	static IOReader *createSensor (GenString model0, std::vector<unsigned int> &pins, GenString name=""){
 #undef FTEMPLATE
-#define FTEMPLATE ".irom.text.iofactory4"
+#define FTEMPLATE ".irom.text.iofactory2"
 	static IOReader *createReader (GenString model0, unsigned int num, std::vector<unsigned int>pinvect){ //GenString model0, std::vector<unsigned int> &pins, GenString name=""){
  //		println(RF("IOFactory::createSensor"));
 
@@ -80,7 +80,7 @@ public:
 		BasicReader *genreader=new BasicReader(ndriver);
 
 #ifdef ESP8266BUILD
-	print(RF("IOFactory::createSensor - memory after end:"));	 println(ESP.getFreeHeap(),DEC);
+//	print(RF("IOFactory::createSensor - memory after end:"));	 println(ESP.getFreeHeap(),DEC);
 #endif
 		return genreader;
 	};
@@ -90,14 +90,16 @@ public:
 		unsigned int p=255;
 		while(pinstr[0]==' ') pinstr.erase(0,1);
 		while(pinstr[pinstr.length()-1]==' ') pinstr.erase(pinstr.length()-1,1);
-		if(pinstr==RF("D0")) p=D0;
-		if(pinstr==RF("D1")) p=D1;
-		if(pinstr==RF("D2")) p=D2;
-		if(pinstr==RF("D3")) p=D3;
-		if(pinstr==RF("D4")) p=D4;
-		if(pinstr==RF("D5")) p=D5;
-		if(pinstr==RF("D6")) p=D6;
-		if(pinstr==RF("D7")) p=D7;
+		if(pinstr==("D0")) p=D0;
+		if(pinstr==("D1")) p=D1;
+		if(pinstr==("D2")) p=D2;
+		if(pinstr==("D3")) p=D3;
+		if(pinstr==("D4")) p=D4;
+		if(pinstr==("D5")) p=D5;
+
+		if(pinstr==("D6")) p=D6;
+
+		if(pinstr==("D7")) p=D7;
 		return p;
 	}
 

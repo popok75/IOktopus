@@ -26,7 +26,7 @@ public:
 		//		GenMap::Iterator it=valmap.begin();
 		//		for(;!it.isEnd();(it)++){
 		for(GenMap::Iterator it:valmap){
-			GenString fullpath=path+RF("/")+it.key();
+			GenString fullpath=path+'/'+it.key();
 			bool b=updateVal(fullpath,it.value());
 			if(b) ret=true;
 		}
@@ -34,6 +34,8 @@ public:
 		return ret;
 	}
 	virtual bool updateVal(GenString path, GenString valstring)=0;
+	virtual bool erase(GenString path)=0;	//remove value or subtree
+
 	virtual GenString get(GenString path)=0;	// return the value at the path,
 	// or a null string the path does not exist or matches subkeys not a value
 
@@ -50,7 +52,7 @@ public:
 
 };
 
-GenString jsonEscape(GenString str){return GenString()+RF("\"")+str+RF("\"");}	// simplified json escaping
+GenString jsonEscape(GenString str){return GenString()+'"'+str+'"';}	// simplified json escaping
 
 
 
@@ -61,12 +63,10 @@ GenString jsonEscape(GenString str){return GenString()+RF("\"")+str+RF("\"");}	/
 #include "GenMap.h"
 
 // a simpler spiffs-like implementation with just one map and flat paths as keys
-class GenTreeMapStlVect: public GenTreeMapProto
+class GenTreeMapGenMap: public GenTreeMapProto
 {
 	GenMap datamap;
 public:
-
-
 
 	virtual bool updateVal(GenString path, GenString valstring){
 		if(path.back()=='/') path.pop_back();
@@ -75,6 +75,19 @@ public:
 		// if we remove previous lines, it would enable to store multiple values per path
 		return datamap.set(path,valstring);
 	};
+
+	virtual bool erase(GenString path){if(datamap.has(path)) return datamap.erase(path);else return false;};
+	virtual bool eraseSubPaths(GenString path){//erase all that start with path
+		std::vector<GenString> toerase;
+		for(GenMapProto::Iterator it:datamap){
+			GenString k=it.key();
+			if(k== path || startsWith(k,path+'/')) toerase.push_back(k);
+		}
+		bool b=false;
+		for(GenString p : toerase) b=erase(p) || b;
+		return b;
+	};
+
 
 	virtual GenString get(GenString path){// return the value at the path,// or a null string the path does not exist or matches subkeys not a value
 		if(path.back()=='/') path.pop_back();
@@ -107,13 +120,34 @@ public:
 		return "";
 	};
 
+	virtual GenMap getSubValues(GenString path){
+		if(path.back()=='/') path.pop_back();
+		GenMap ret;
+		GenMapProto::Iterator it2=datamap.begin();
+		for(GenMapProto::Iterator it:datamap){
+			GenString k=it.key();
+			if(startsWith(k,path+'/')) ret.set(k,it.value());
+		}
+		return ret;
+	}
+
+	virtual GenString findSubValue(GenString value, GenString path){// a search for a value in subpaths, not to confuse with findValuePath
+			if(path.back()=='/') path.pop_back();
+			GenMapProto::Iterator it2=datamap.begin();
+			for(GenMapProto::Iterator it:datamap){
+				GenString k=it.key();
+				if((k==path || startsWith(k,path+'/')) && it.value()==value) return k;
+			}
+			return "";
+		}
+
 	virtual std::vector<GenString> listSubpaths(GenString path){	// return a list of the direct subkeys
 		if(path.back()=='/') path.pop_back();
 		std::vector<GenString> subkeys;
 		GenMapProto::Iterator it2=datamap.begin();
 		for(GenMapProto::Iterator it:datamap){
 			GenString k=it.key();
-			if(k!=path && startsWith(k,path)) {
+			if(k!=path && startsWith(k,path+'/')) {
 				GenString subpath=k.substr(path.size());
 				GenString subkey=getPathToken(subpath,0);
 				bool add=true;
@@ -143,7 +177,7 @@ public:
 	// should make an external JSON writer that require only tree traversal functions
 	// could convert numeral only keys into array (if appropriate)
 	GenString getAsJson() {		// a gentreemap::iterator allowing to go through each item would be useful and would allow a gen version of getasjson
-		GenString jsonstr=RF("{");
+		GenString jsonstr=GenString()+'{';
 		bool stop=false;
 		if(!datamap.empty()){
 
@@ -167,18 +201,18 @@ public:
 						cpath=npath;	// found next	//pb here when comparator
 						found=true;
 					}
-					jsonstr+=RF("}");
+					jsonstr+='}';
 					comma=true;
 					continue;
 				}
-				if(comma) jsonstr+=RF(",");
-				jsonstr+=jsonEscape(getPathLeaf(cpath))+RF(":");
-
+				if(comma) jsonstr+=',';
+				jsonstr+=jsonEscape(getPathLeaf(cpath))+':';
+				//		std::cout << " cpath :"<< cpath << " "<< getPathLeaf(cpath)<< std::endl;
 
 
 				std::vector<GenString> vect=listSubpaths(cpath);
 				if(vect.size()>0){// if has children => // add its key+{, save node, and replace by sub node
-					jsonstr+=RF("{");
+					jsonstr+='{';
 					//ckey=vect.front();
 					cpath+=vect.front()+'/';
 					comma=false;
@@ -195,7 +229,7 @@ public:
 
 			}
 		}
-		jsonstr+=RF("}");
+		jsonstr+='}';
 		return jsonstr;
 	}
 
@@ -483,7 +517,7 @@ public:
 
 	// could convert numeral only keys into array (if appropriate)
 	GenString getAsJson() {		// a gentreemap::iterator allowing to go through each item would be useful and would allow a gen version of getasjson
-		GenString jsonstr=RF("{");
+		GenString jsonstr=GenString()+'{';
 		bool stop=false;
 		if(root.hasMap()){
 			std::vector<StlMap::iterator> vectit;
@@ -499,22 +533,22 @@ public:
 					// or go up
 					it=vectit.back();vectit.pop_back();
 					vectmap.pop_back();
-					jsonstr+=RF("}");
+					jsonstr+='}';
 					comma=true;
 					continue;
 				}
 
 				GenTreeMapStlNode *cur=&(it->second);
 
-				if(comma) jsonstr+=RF(",");
-				jsonstr+=jsonEscape(it->first)+RF(":");
+				if(comma) jsonstr+=',';
+				jsonstr+=jsonEscape(it->first)+':';
 				/*			std::string addition=jsonEscape(it->first)+RF(":");
 				if(addition.find("dst[1]")<addition.size()) {
 					std::cout << addition << std::endl;
 				}*/
 
 				if(cur->hasMap()){// if has children => // add its key+{, save node, and replace by sub node
-					jsonstr+=RF("{");
+					jsonstr+='{';
 					it++;
 					vectit.push_back(it);
 					it=cur->getMap()->begin();
@@ -529,13 +563,13 @@ public:
 				it++;
 			}
 		}
-		jsonstr+=RF("}");
+		jsonstr+='}';
 		return jsonstr;
 	}
 
 };
 
 
-#define GenTreeMap GenTreeMapStlVect
+#define GenTreeMap GenTreeMapGenMap
 
 #endif

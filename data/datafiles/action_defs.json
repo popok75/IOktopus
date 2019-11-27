@@ -1,0 +1,40 @@
+{
+"actions":
+{
+	"action":{
+	},
+	"assign":{
+		"desc":"assign values of src[] to dst[]",	 // desc: description of the action for the end user
+		"args":{"src":[]},		// args : variables to create and subscribe to
+		"results":"dst"  // results : variables to create
+	},
+	"selectassign":{	// copy the value of src[channel] to dst[channel] when channel change and when current src[channel] value (or linked value) change 								
+		"desc":"copy value of src[channel] to dst[channel]",
+		"args":["channel", "src"],		// src array must be as big as channel gets
+		"results":"dst"		//dst is an array as well
+	},  
+	"compare":{ // set conditionmet to 1 if the expression lefthand_operator_righthand evaluate to true, else set conditionmet to 0
+		"desc":"compare lefthand to righthand, update conditionmet with 1 if the condition is met and 0 otherwise",
+		"args":["lefthand", "righthand", {"operator":"less{greaterthan}"}],	// enum syntax other vals are stored in the value : val{othervals}
+		 "results" : "conditionmet"
+	},
+	"clocktrigger":{	// cyc is  passive argument, used only when useful, but not when changed
+		"desc":"start step=0, wait dur, increment step",
+		"args":[{"startstop":"0"}, {"cyc":"0"},{"step":"0"}, "dur"],		// step is both input and output, and it is ok, but not necessary, could use startstep as input
+		 "results" : ["ts0"]														// ts0 is calculated according to current step and previous durations				
+		 // ts0 could become input/output as well, or with a extra starttime input
+	},
+	"calculate":{
+		"args":"src[]",
+		 "results" : "dst[]"
+	}
+}
+/*
+,
+"subactions":
+{
+	"psyRH" : "n=3, src0~psyconstant,src1~Twet,src2~Tdry",
+	"expression" : "src0~expression"
+}
+*/
+}

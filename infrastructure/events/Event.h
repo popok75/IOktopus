@@ -8,6 +8,7 @@ public:
 	virtual ~Event(){};
 	virtual Event* getCopy(){return new Event();};
 	virtual unsigned int getClassType(){return EventTYPE;}
+	virtual bool isClassType(unsigned int type){if(type==getClassType()) return true; else return false;};
 };
 
 #include "../../datastruct/GenString.h"
@@ -19,6 +20,7 @@ public:
 	GenString str;
 	StringEvent(GenString str0=""):str(str0){};
 	virtual unsigned int getClassType(){return StringEventTYPE;}
+
 };
 #define MultipartStringEventTYPE 4
 class MultipartStringEvent : public StringEvent {
@@ -29,6 +31,7 @@ public:
 	bool tobecontinued=false;
 	MultipartStringEvent(unsigned int maxsize0, unsigned int index0=0,GenString str0=""):StringEvent(str0){maxsize=maxsize0;};
 	virtual unsigned int getClassType(){return MultipartStringEventTYPE;}
+
 };
 
 /*
@@ -74,6 +77,11 @@ public:
 	StringMapEvent(std::initializer_list<std::initializer_list<GenString>> src): values(src)  {};
 	virtual Event* getCopy(){return new StringMapEvent(&values);};
 	virtual unsigned int getClassType(){return StringMapEventTYPE;}
+	virtual bool isClassType(unsigned int type){
+			if(Event::isClassType(type)) return true;
+			else if(type==StringMapEventTYPE) return true;
+			else if(type==EventTYPE) return true; else return false;
+		};
 };
 
 #define NamedStringMapEventTYPE 3
@@ -85,6 +93,25 @@ public:
 	NamedStringMapEvent(std::string ename0,std::multimap<GenString,GenString> *src):  StringMapEvent(src), ename(ename0) {};
 	virtual Event* getCopy(){return new NamedStringMapEvent(ename,&values);};
 	virtual unsigned int getClassType(){return NamedStringMapEventTYPE;}
+	virtual bool isClassType(unsigned int type){
+			if(StringMapEvent::isClassType(type)) return true;
+			else if(type==NamedStringMapEventTYPE) return true;	else return false;
+		};
+};
+
+#define PtrNStringMapEventTYPE 6
+class PtrNStringMapEvent : public StringMapEvent{
+public:
+	void* ptr;
+	PtrNStringMapEvent(void* ptr0,GenMap *src) : StringMapEvent(src), ptr(ptr0){};
+	PtrNStringMapEvent(void* ptr0,std::initializer_list<std::initializer_list<GenString>> src): StringMapEvent(src), ptr(ptr0) {};
+	PtrNStringMapEvent(void* ptr0,std::multimap<GenString,GenString> *src):  StringMapEvent(src), ptr(ptr0) {};
+	virtual Event* getCopy(){return new PtrNStringMapEvent(ptr,&values);};
+	virtual unsigned int getClassType(){return PtrNStringMapEventTYPE;}
+	virtual bool isClassType(unsigned int type){
+		if(StringMapEvent::isClassType(type)) return true;
+		else if(type==PtrNStringMapEventTYPE) return true; else return false;
+	};
 };
 
 

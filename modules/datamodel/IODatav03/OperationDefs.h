@@ -19,6 +19,10 @@
 
 ////////////////////// Operation lib
 
+#undef FTEMPLATE
+#define FTEMPLATE ".irom.text.operationdefs"
+
+
 #define OPPATHDEFLIB "/operations/"
 #define ACPATHDEFLIB "/actions/"
 
@@ -76,18 +80,18 @@ public:
 		return vect;
 	};
 	GenString getDefVal(GenString subpath){
-		return definitions.get(RF(subpath));
+		return definitions.get(subpath);
 	}
 
 	bool loadOperationJSONContent(GenString jsoncontent){
 		bool b= loadJSONToGenTreeMap(jsoncontent,&definitions);
-		std::cout << "OperationDefs::loadOperationJSONContent :"<<definitions.getAsJson() << std::endl;
+	//	std::cout << "OperationDefs::loadOperationJSONContent :"<<definitions.getAsJson() << std::endl;
 		return b;
 	};
 
 	bool loadActionJSONContent(GenString jsoncontent){
 		bool b= loadJSONToGenTreeMap(jsoncontent,&definitions);
-		std::cout << "OperationDefs:: actions loaded :" << definitions.getAsJson() << std::endl;
+	//	std::cout << "OperationDefs:: actions loaded :" << definitions.getAsJson() << std::endl;
 		return b;
 	};
 
@@ -222,7 +226,7 @@ public:
 
 	bool subscribeValue(GenString varmodelrelpath, DefItem *defitem){
 		varmodelrelpath=defitem->getModelFullPath()+"/"+varmodelrelpath;
-//		std::cout << "OperationDefs:: subscribed : "<<varmodelrelpath << std::endl;
+	//	std::cout << "OperationDefs:: subscribed : "<<varmodelrelpath << std::endl;
 		defitem->getModel()->on(varmodelrelpath, RF("write"), defitem->getListener());
 		//oplib->getModel()->subscribeToPath(varmodelrelpath,listener);
 		//varmodelpath=defitem->getModelFullPath()+"/"+varmodelpath;
@@ -233,10 +237,10 @@ public:
 
 		bool b=false;
 		GenMap varvals=getVarList(vardefpath);
-		//		std::cout << "subscribeVar : varpath : "<< vardefpath << " - varlist size : " << varvals.size() << std::endl;
+	//			std::cout << "subscribeVar : varpath : "<< vardefpath << " - varlist size : " << varvals.size() << std::endl;
 		for(auto it:varvals){
 			GenString k=it.key();
-			//			std::cout << "subscribeVar : key :"<< k << std::endl;
+	//					std::cout << "subscribeVar : key :"<< k << std::endl;
 			if(subscribeValue(k, defitem)) b=true;
 		}
 		return b;

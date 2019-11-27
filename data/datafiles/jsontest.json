@@ -1,0 +1,41 @@
+{
+"actions":
+{
+	"action":["listitem1","listitem2",{"key1","value"}]
+	,
+	"numbers": 24
+	,
+	"float": -.89
+	,
+
+	"assign":{
+		"desc":"assign values of src[] to dst[]",
+		"args":"src[]",
+		"results":"dst[]"
+	},
+	"selectassign":{
+		"desc":"assign value of src[channel] to dst[channel]",
+		"args":"channel, src[]",
+		"results":"dst[]"
+	},
+	"compare":{
+		"desc":"compare lefthand to righthand",
+		"args":"lefthand, righthand,operator=less{greaterthan}",	// enum syntax other vals are stored in the value : val{othervals}
+		 "results" : "conditionmet,tsn"
+	},
+	"clocktrigger":{
+		"desc":"start step=0, wait dur, increment step",
+		"args":"startstop, dur[], cyc",
+		 "results" : "ts0,step,tsn"
+	},
+	"calculate":{
+		"args":"src[]",
+		 "results" : "dst[]"
+	}
+},
+"subactions":
+{
+	"psyRH" : "n=3, src0~psyconstant,src1~Twet,src2~Tdry",
+	"expression" : "src0~expression"	
+}
+}

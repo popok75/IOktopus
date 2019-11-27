@@ -72,6 +72,8 @@ public:
 		} //else Serial.print(RF("."));
 		return b;
 	}
+#undef FTEMPLATE
+#define FTEMPLATE ".irom.text.shtdriver2"
 	void logError(byte error) {
 		switch (error) {
 		case S_Err_NoACK:Serial.println(RF("Error: No response (ACK) received from sensor!"));break;

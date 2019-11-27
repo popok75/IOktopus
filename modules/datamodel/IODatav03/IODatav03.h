@@ -10,6 +10,10 @@
  *
  * */
 
+#undef FTEMPLATE
+#define FTEMPLATE ".irom.text.iodatav03"
+
+
 #define WRITETAG "write"
 
 
@@ -49,24 +53,49 @@ public:
 				if(!strev) return false;
 				strev->str=this->getAsJson();
 				return true;
-			}
+			}/*
+			if(ename==GET_DATA_SUBVALUES_EVENT){  // strev->str is the path argument
+				StringMapEvent *emap=0;
+				if(event->getClassType()==StringMapEventTYPE) emap=(StringMapEvent*)(event);
+				if(!emap || emap->values.empty()) return false;
+				GenString path=emap->values.begin().value();
+			//	if(!path) return false;
+				path="/operations/MaxHumidity/dst/";
+
+				bool hp=hasPath(path);
+				std::vector<GenString> list=subPaths(path);
+				for(GenString k : list){
+					println(GenString()+"subkey: "+k);
+				}
+
+				return true;
+			}*/
+/*			if(ename==GET_DATA_NODE_EVENT){
+				StringMapEvent *emap=0;
+				if(event->getClassType()==StringMapEventTYPE) emap=(StringMapEvent*)(event);
+				if(!emap || emap->values.empty()) return false;
+				GenString path=emap->values.begin().value();
+				...we need a function to read a whole node
+				return true;
+			}*/
 
 			if(ename==UPDATE_MODEL_EVENT){
 				//	println("IODatav01:notify UPDATEMODEL");
 				StringMapEvent *emap=0;
-				if(event->getClassType()==StringMapEventTYPE) emap=(StringMapEvent*)(event);//should check type before casting
+				if(event->getClassType()==StringMapEventTYPE) emap=(StringMapEvent*)(event);// check type before casting
 				if(!emap || emap->values.empty()) return false; //pb
 				//	auto it=emap->values.begin();
 				//for(;!it.isEnd();it++){
 				bool b=false;
 				for(GenMap::Iterator it : emap->values) {
 					println(GenString()+"key: "+it.key());
-					b=updateVal(it.key(),it.value(),false) || b;
+					b=updateVal(it.key(),it.value(),true) || b;
 				}
-				//should emit one change
-				emit(MODEL_UPDATED_EVENT, emap);
+				// emit one change
+				PtrNStringMapEvent ptremap=PtrNStringMapEvent((void*)&data, &emap->values);
+				emit(MODEL_UPDATED_EVENT, &ptremap);	// 2 notification system : - tag based ("modelUpdate",Eventmap), vs path+tag ("/nodes/in/value#write")
 				//println("IODatav01:notify :"+ename+" "+cell.key+" "+cell.value);
-				println(GenString()+RF("updated model to:")+getAsJson());
+		//		println(GenString()+RF("updated model to:")+getAsJson());
 				emap->ok=b;
 				return true;
 			}
@@ -109,12 +138,19 @@ public:
 
 //	bool updateVal(GenString path, GenString val){return updateVal(path,val,true);}
 	bool updateVal(GenString path, GenString val, bool notifychange=true){
+
+		if(path=="delete") return data.eraseSubPaths(val);
+
+	 	// method for modificiation without link follow : # after path
 		GenString npath=resolveLink(path);
 
-		std::cout << "IODatav03::updateVal path: "<< path << ", resolved to: "<< npath <<", updated to value: '"<< val << "'" << std::endl;
+	//	std::cout << "IODatav03::updateVal path: "<< path << ", resolved to: "<< npath <<", updated to value: '"<< val << "'" << std::endl;
+
+	//	println(GenString()+RF("updated model from:")+getAsJson());
 		// if val is a link, maybe reformat it to have no / at the end and ease search
 		bool b= data.updateVal(npath,val);		// emit even when value was not modified ? even for links ?
 
+	//	println(GenString()+RF("updated model to:")+getAsJson());
 //		GenString check=data.get(npath);std::cout<< npath <<" written with '"<<check<<"'"<<std::endl;
 		if(notifychange) emitIODataEvent(path,RF(WRITETAG));//delay events to avoid congesting event processing ?
 

@@ -2,6 +2,8 @@
 import {} from "./globalexport.js";		// defines globalexport({objs,funcs}) that export anything to global 
 //to be compatible with other type and without copy the instance created by the module than es6 module system (e.g. loadJS)
 
+import {} from "./globaldefs.js";		
+
 //import {loadremote,loadFav} from './loadremote.js';
 import {} from './loadremote.js';
 
@@ -10,7 +12,10 @@ import {UserView} from "./ui/UserView.js";
 import {Controller} from "./Controller.js";
 
 
+
 var geid=document.getElementById.bind(document);
+
+
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -18,13 +23,14 @@ var geid=document.getElementById.bind(document);
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //loading doc
 
+
 function initclient() {
 	var model=new RemoteModel();
 	var view=new UserView();
 	var controller=new Controller(model,view);
 	model.init();
 	geid('userinterface').innerHTML="client initialized";
-	geid('title').innerHTML="IOktopus v0.15";
+	geid('title').innerHTML="IOktopus v0.35 growing...";
 }
 
 

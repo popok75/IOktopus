@@ -145,8 +145,9 @@ public:
 
 	// HTU allow hold and no hold, take 50ms to read
 	// for ESP8266 one process only, hold is no good, we use hold and come back every tick to check if the result changed
+
 	bool sensorTick(){	// read temp, then hum
-		//	Serial.println("HTU sensorTick");
+		if(debug) println("FakeTempRHDriver::sensorTick");
 		if(readingtemp){
 			bool b=htu.readTemperatureAsync(temp,100);
 			//	println("HTUSensorReader::sensorTick temp:");

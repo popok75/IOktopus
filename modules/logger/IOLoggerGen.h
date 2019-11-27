@@ -17,7 +17,7 @@
 
 
 
-class IOLoggerGen : public EventListener
+class IOLoggerGen : public EventListener//, public DefaultEventEmitter
 {
 protected:
 	GenMap *config;

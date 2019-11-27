@@ -330,7 +330,9 @@ class SSString : public GenString {
 };
 
 
-class GenSSMap : public GenMapProto, SSMap {
+class GenSSMap : public GenMapProto, SSMap {	// the bigger the string supporting the map, the slower it will become,
+													// maybe should be a version split in blocks of limited size ?
+												// in addition stringtype used by ssmap can be subjected to size limitation
 public:
 	GenSSMap():GenMapProto(), SSMap(){}
 	GenSSMap( std::initializer_list<std::initializer_list<GenString>> init_list):GenMapProto(), SSMap(){

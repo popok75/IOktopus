@@ -205,7 +205,7 @@ public:
 
 	unsigned char* readFileBuffer(std::string path,size_t &size){
 		File f = SPIFFS.open(path.c_str(), "r");
-		if (!f) { println(std::string()+RF("readFileBuffer Error: could not open file %s\n")+path.c_str()); return 0; }
+		if (!f) { println(std::string()+RF("readFileBuffer Error: could not open file ")+path.c_str()+"\n"); return 0; }
 		unsigned char * buffer = new unsigned char[f.size()];
 		size= f.readBytes((char *)buffer, f.size());
 		println(std::string()+ RF("reading ")+to_string(size));
@@ -215,7 +215,7 @@ public:
 
 	std::string readFileToString(std::string path,size_t &size){
 		File f = SPIFFS.open(path.c_str(), "r");
-		if (!f) { println(std::string()+RF("readFileBuffer Error: could not open file %s\n")+path.c_str()); return std::string(); }
+		if (!f) { println(std::string()+RF("readFileToString Error: could not open file '")+path.c_str()+"'\n"); return std::string(); }
 		unsigned char * buffer = new unsigned char[f.size()];
 		size= f.readBytes((char *)buffer, f.size());
 		println(std::string()+ RF("reading ")+to_string(size));
@@ -227,7 +227,7 @@ public:
 
 	void printFile(std::string path,size_t &size, int blocksize=128){
 		File f = SPIFFS.open(path.c_str(), "r");
-		if (!f) { println(std::string()+RF("readFileBuffer Error: could not open file %s\n")+path.c_str()); return ; }
+		if (!f) { println(std::string()+RF("printFile Error: could not open file ")+path.c_str()+"\n"); return ; }
 		int sz=f.size();
 		size=0;
 		unsigned char * buffer = new unsigned char[blocksize+1];

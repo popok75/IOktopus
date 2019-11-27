@@ -491,7 +491,7 @@ bool parseEntryJSON(std::string &json, unsigned int &indexp, JSONLoader *loader,
 				if(!cont) return false;
 			} else{
 				if(keyend!=indexp){	// maybe here too we need to use
-					std::cout << "problem here ?"<< std::endl;
+				//	std::cout << "problem here ?"<< std::endl;
 				}
 				bool b=loader->updateValue(index,keyend,nextItemStart(json,indexp));//updateLoaderValue(json,index,indexp,loader);
 				if(!b) return false;
