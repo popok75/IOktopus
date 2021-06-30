@@ -52,9 +52,9 @@ public:
 		Dir dir = SPIFFS.openDir(String("/"));
 		while (dir.next()) {
 			str += dir.fileName();
-			str +=  "/";
+			str +=  "(";
 			str += dir.fileSize();
-			str += "\r\n";
+			str += "bytes)\r\n";
 		}
 		Serial.println(str);
 	};
@@ -72,7 +72,7 @@ public:
 		unsigned i=str.indexOf("\n"),ip=0;
 		while (i<str.length()){
 			String filename=str.substring(ip,i);
-			//	erase(filename);
+			erase(filename.c_str());
 			Serial.println(RF("Erasing file :")+filename);
 			ip=i+1;
 			i=str.indexOf("\n",i+1);
@@ -88,16 +88,16 @@ public:
 		filenamebase=path0+filenamebase;
 		while (dir.next()) {
 			std::string fname=dir.fileName().c_str();
-			print(fname+" / "+String(dir.fileSize()).c_str());
+			//print(fname+" / "+String(dir.fileSize()).c_str());
 			if(fname.substr(0,filenamebase.size())==filenamebase) {
 				FileFS ffs;
 				ffs.name=fname;
 				ffs.size=dir.fileSize();
 				v.push_back(ffs);
-				Serial.print(RF(" added "));
-				Serial.print(ffs.name.c_str());
+			//	Serial.print(RF(" added "));
+			//	Serial.print(ffs.name.c_str());
 			}
-			Serial.println();
+			//Serial.println();
 
 		}
 		return v;
@@ -208,7 +208,7 @@ public:
 		if (!f) { println(std::string()+RF("readFileBuffer Error: could not open file ")+path.c_str()+"\n"); return 0; }
 		unsigned char * buffer = new unsigned char[f.size()];
 		size= f.readBytes((char *)buffer, f.size());
-		println(std::string()+ RF("reading ")+to_string(size));
+		//println(std::string()+ RF("reading ")+to_string(size));
 		f.close();
 		return buffer;
 	};
@@ -218,7 +218,7 @@ public:
 		if (!f) { println(std::string()+RF("readFileToString Error: could not open file '")+path.c_str()+"'\n"); return std::string(); }
 		unsigned char * buffer = new unsigned char[f.size()];
 		size= f.readBytes((char *)buffer, f.size());
-		println(std::string()+ RF("reading ")+to_string(size));
+//		println(std::string()+ RF("reading ")+to_string(size));
 		f.close();
 		std::string str((const char *)buffer);
 		delete buffer;

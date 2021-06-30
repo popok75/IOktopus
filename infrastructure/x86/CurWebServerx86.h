@@ -37,6 +37,8 @@ public:
 	void onHttp(std::string uri) ; // called by the httpsocket to notify server
 
 	void on(std::string path, int getpost, void (*func)()){callbacks[path]=func;};
+	void on(std::string path, int getpost, void (*func)(),void (*func2)()){callbacks[path]=func;};
+
 	void onNotFound(void (*func)()){callbacks["notfound"]=func;};
 
 	bool hasHeader(std::string name);       // check if header exists
@@ -48,12 +50,14 @@ public:
 	void setContentLength(int ){};//dummy function -> require webserver.cpp modification to modify contentLength
 	void sendContent( std::string header);
 	void sendHeader( std::string header, std::string value);
-	void send(int status, std::string type, std::string message);;
+	void send(int status, std::string type, std::string message);
+	void send(int status){};
 	size_t streamFile(std::string filename, std::string contentType,unsigned long start=0,unsigned long stop=0);	// send a file to current req
 
 
 	void handleClient();	// call mono yield function
 
+	bool uploadFile() {return false;};	// not implemented... yet ?
 };
 
 

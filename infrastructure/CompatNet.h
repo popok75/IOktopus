@@ -24,6 +24,7 @@ public:
 	static void startAP(){};
 	static void stopAP(){};
 	static void reconnectIfRequired(){};
+	static void yield(){};
 };
 
 

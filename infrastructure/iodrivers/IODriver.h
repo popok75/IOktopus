@@ -18,19 +18,30 @@
 #define TEMPERATURE_CHANNEL_TYPE "Temperature"
 
 
+class IODriverListener {
+public:
+	virtual void notify(unsigned channel)=0;
+};
+
+
 class IODriver
 {
 protected:
 	unsigned int num;
 	std::vector<unsigned int> pins;
+	IODriverListener *driverListener;
+
+	bool debug=false;
 
 public:
 	IODriver(unsigned int num0, std::vector<unsigned int> pins0):num(num0),pins(pins0){}
 	virtual ~IODriver(){};
 
-	bool debug=false;
+	void setListener(IODriverListener*listener1){driverListener=listener1;}
 
 	virtual bool init() {return true;};
+
+	void autoread(unsigned interval){};// use burster here
 
  	virtual bool sensorTick()=0;
  	virtual unsigned int channelNumber()=0;

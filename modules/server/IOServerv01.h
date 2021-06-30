@@ -30,16 +30,42 @@
 #define SERVERPRIVATEREAD_KEYWORD "server-private-read"
 #define SERVERMDNSNAME_KEYWORD "server-mdns-name"
 #define SERVERDEFAULTMDNSNAME "ioktopus"
+
+#define WIFI_STATION_SSID "wifi-ssid"
+#define WIFI_STATION_PASSWORD "wifi-password"
+#define WIFI_STATION_GETIP "getStationIP"
+#define WIFI_STATION_GETSTATUS "getStationStatus"
+
+#define WIFI_SOFTAP_SSID "wifi-apname"
+#define WIFI_SOFTAP_PASSWORD "wifi-appassword"
+#define WIFI_SOFTAP_GETIP "getSoftAPIP"
+
+
+#define EVENTCONNECTSTATION "ConnectStation"
+#define EVENTDISCONNECTSTATION "DisconnectStation"
+#define EVENTCONNECTAP "ConnectAP"
+#define EVENTDISCONNECTAP "DisconnectAP"
+
+
 //#define MULTIPARTLOG true
 
 #define MAXHTTPCHUNK 2048
 
-#define SERVERBACKUPPAGEPRE1 "<fieldset id='linkgroup'	style='position: absolute; right: 2em; top: 1em; border: 1px dotted; font-size: 80%;'>switch to faster local ip: <a href='http://"
-#define SERVERBACKUPPAGEPRE2 "'>http://"
-#define SERVERBACKUPPAGEPRE3 "/</a></fieldset>"
+#define SERVERBACKUPPAGEPRE1 "<fieldset id='linkgroup'	style='position: absolute; right: 2em; top: 1em; border: 1px dotted; font-size: 80%;'>"
+#define SERVERBACKUPPAGEPRE2 "Station ip: <a href='http://"
+#define SERVERBACKUPPAGEPRE21 "'>http://"
+#define SERVERBACKUPPAGEPRE22 "/</a>"
+#define SERVERBACKUPPAGEPRE3 "<br>SoftAP ip <a href='http://"
+#define SERVERBACKUPPAGEPRE4 "</fieldset>"
 
-#define SERVERBACKUPPAGE_WIFI "<form id='wifiform' action='/setWifi'><b>Set wifi </b><br> ssid <input type='text' name='ssid' size=25> password <input type='password' name='ssidpassword' size=25> <br> mdns name (optional)<input type='text' name='mdnsname' size=15 placeholder='ioktopus'> <input type='submit' value='submit'></form>"
-#define SERVERBACKUPPAGE_POPULATE "<form id='bform' action='/populateFiles'>from file list url: <input type='text' name='filelisturl' size=80> <br><input type='submit' value='Submit'> <br>or file list content: <textarea form='bform' rows=10 name='content' style='width:100%;white-space: pre;'></textarea></form>"
+#define SERVERBACKUPPAGE_WIFI "<form id='wifiform' action='/setWifi'><b>Change settings</b> <br>ssid <input type='text' name='ssid' size=25> password <input type='password' name='ssidpassword' size=25> <select name='method'><option value='station'>station</option><option value='softAP'>softAP</option></select> <input type='checkbox' name='disconnect' value=1><span style='font-size:85%;'>disconnect</span><br> mdns name (optional)<input type='text' name='mdnsname' size=15 placeholder='ioktopus'> <input type='submit' value='submit'></form>"
+#define SERVERBACKUPPAGE_POPULATE "<form id='bform' action='/populateFiles'>from url of filelist.txt : <input type='text' name='filelisturl' size=80> <br><input type='submit' value='Submit'></form>"
+
+#define SERVERBACKUPPAGE_UPLOAD1 "<p>You can also drag to this window or choose \"data\" directory / files to upload:</p> <div> <div style=\"display:inline\" class=\"picker\"> <input type=\"file\" id=\"picker\" name=\"fileList\" webkitdirectory multiple> </div> <div style=\"display:inline-table;width:200px;border:1px solid;border-radius:10px;text-align:center\"> <p style=\"vertical-align:middle\">Drop here</p> </div> </div>  <ul id=\"listing\"> </ul>"
+//#define SERVERBACKUPPAGE_UPLOAD2 "<script>var geid=document.getElementById.bind(document),listing=geid(\"listing\"),prefix=\"/data\";function trimname(a){return a.startsWith(prefix)?a.substring(prefix.length):a}function uploadFiles(a){function b(a,b){function c(a,b){var c=\"progress-\"+e,d=geid(c);return b?void(d.value=b):void(a?d.parentElement.append(\" - done !\"):(d.value=\"\",d.parentElement.append(\" - failed !\")),d.id+=\"-ended\")}function d(a){var d=new XMLHttpRequest;d.open(\"post\",\"/upload\",!0),d.onload=function(a){200==status?c(!0):c(!1),b&&b(a)},d.onerror=function(a){console.log(\"xhr error :\"+a),c(!1),b&&b(a)},d.upload.addEventListener(\"progress\",function(a){var b=100*(a.loaded/a.total);c(!1,b)});var f=new FormData,g=trimname(e);f.append(g,a,g),d.send(f)}var e;a.file?(e=a.fullPath,a.file(d)):(e=\"/\"+a.webkitRelativePath,d(a))}if(a.length){function d(){setTimeout(function(){var c=a.shift();c&&b(c,d)},100)}var c=a.shift();b(c,d)}}function afterlist(a){for(var b in a=Array.from(a),a){var c,d=a[b],e=document.createElement(\"li\");c=d.webkitRelativePath?\"/\"+d.webkitRelativePath:d.fullPath;var f=\"<progress value=0 id='progress-\"+c+\"'></progress>\";c=trimname(c),e.innerHTML=c+\" \"+f,listing.appendChild(e)}uploadFiles(a)}var dropzone=document.documentElement;dropzone.addEventListener(\"dragover\",function(a){a.preventDefault()},!1),dropzone.addEventListener(\"drop\",function(a){function b(a,d,e){if(a.isDirectory){c++;var f=a.createReader();f.readEntries(function(a){for(var f in a)b(a[f],d,e);c--,0==c&&e(d)})}else d.push(a)}var c=0;a.preventDefault();for(var d,e=a.dataTransfer.items,f=[],g=0;g<e.length;g++)d=e[g].webkitGetAsEntry(),d&&b(d,f,afterlist)},!1);var picker=geid(\"picker\");picker.addEventListener(\"change\",a=>{afterlist(a.target.files)});</script>"
+#define SERVERBACKUPPAGE_UPLOAD2 "<script>var geid=document.getElementById.bind(document),listing=geid(\"listing\"),prefix=\"/data\";function trimname(a){return a.startsWith(prefix)?a.substring(prefix.length):a}function uploadFiles(a){function b(a,b){function c(a,b){var c=\"progress-\"+e,d=geid(c);return b?void(d.value=b):void(a?d.parentElement.append(\" - done !\"):(d.value=\"\",d.parentElement.append(\" - failed !\")),d.id+=\"-ended\")}function d(a){var d=new XMLHttpRequest;d.open(\"post\",\"/upload\",!0),d.onload=function(a){console.log(\"status:\"+this.status),200==this.status?c(!0):c(!1),b&&b(a)},d.onerror=function(a){console.log(\"xhr error :\"+a),c(!1),b&&b(a)},d.upload.addEventListener(\"progress\",function(a){var b=100*(a.loaded/a.total);c(!1,b)});var f=new FormData,g=trimname(e);f.append(g,a,g),d.send(f)}var e;a.file?(e=a.fullPath,a.file(d)):(e=\"/\"+a.webkitRelativePath,d(a))}if(a.length){function d(){setTimeout(function(){var c=a.shift();c&&b(c,d)},100)}var c=a.shift();b(c,d)}}function afterlist(a){for(var b in a=Array.from(a),a){var c,d=a[b],e=document.createElement(\"li\");c=d.webkitRelativePath?\"/\"+d.webkitRelativePath:d.fullPath;var f=\"<progress value=0 id='progress-\"+c+\"'></progress>\";c=trimname(c),e.innerHTML=c+\" \"+f,listing.appendChild(e)}uploadFiles(a)}var dropzone=document.documentElement;dropzone.addEventListener(\"dragover\",function(a){a.preventDefault()},!1),dropzone.addEventListener(\"drop\",function(a){function b(a,d,e){if(a.isDirectory){c++;var f=a.createReader();f.readEntries(function(a){for(var f in a)b(a[f],d,e);c--,0==c&&e(d)})}else d.push(a)}var c=0;a.preventDefault();for(var d,e=a.dataTransfer.items,f=[],g=0;g<e.length;g++)d=e[g].webkitGetAsEntry(),d&&b(d,f,afterlist)},!1);var picker=geid(\"picker\");picker.addEventListener(\"change\",a=>{afterlist(a.target.files)});</script>"
+
+//#define SERVERBACKUPPAGE_POPULATE "<form id='bform' action='/populateFiles'>from file list url: <input type='text' name='filelisturl' size=80> <br><input type='submit' value='Submit'> <br>or file list content: <textarea form='bform' rows=10 name='content' style='width:100%;white-space: pre;'></textarea></form>"
 
 
 
@@ -78,6 +104,54 @@ void fakeLog(MultipartStringEvent *se){
 	};
  */
 
+
+
+/*******************//*
+bool staon2=true, apon2=false;
+static bool connectAP2(const char *ssid1,const char *password1){
+	if(staon2) WiFi.mode(WIFI_AP_STA);
+	else WiFi.mode(WIFI_AP);
+	apon2=true;
+	WiFi.softAP(ssid1, password1);  //Start HOTspot removing password will disable security
+
+	IPAddress myIP = WiFi.softAPIP(); //Get IP address
+	Serial.println(String()+"created AP :"+ssid1);
+	Serial.print("IP address:");
+	Serial.println(myIP);
+	//   mode="AP";
+	return true;
+}
+static bool connectST2(const char *ssid1,const char *password1){
+	// Connect to WiFi network
+	if(apon2) WiFi.mode(WIFI_AP_STA);
+	else WiFi.mode(WIFI_STA);
+	staon2=true;
+	WiFi.begin(ssid1, password1);
+	Serial.println("");
+	unsigned int ts=millis(), timeout=0;//15000;
+	// Wait for connection
+	while (WiFi.status() != WL_CONNECTED && (millis()-ts)<timeout) {
+		delay(500);
+		Serial.print(".");
+	}
+	if( WiFi.status() == WL_CONNECTED) {
+		Serial.println(String()+"Connected to "+ssid1+" in "+String((millis()-ts)/1000)+"seconds");
+		Serial.print("IP address: ");
+		Serial.println(WiFi.localIP());
+	} else {
+		Serial.println(String()+"Wifi connection to station failed "+ssid1+" in "+String((millis()-ts)/1000)+"seconds");
+		//	if(apon2) WiFi.mode(WIFI_AP);
+		//	WiFi.disconnect();
+
+	}
+	return WiFi.status() == WL_CONNECTED;
+}/ *******************/
+
+//void sendok();//{if(statinst) statinst->server.send(200);};
+//void sendupload();//{if(statinst) statinst->serveFileUpload();};
+	//   [](){ statinst->server.send(200); },                          // Send status 200 (OK) to tell the client we are ready to receive
+	//	[](){ statinst->serveFileUpload(); }
+
 class IOServerv01: public IOServerGen
 {
 public:
@@ -86,6 +160,7 @@ public:
 	Ticker serverticker;
 	bool serverpopulate=false;
 	bool serverbusy=false;
+	bool serverconnectnow=false,serverconnectapnow=false;
 	GenString filelisturl, filelistcontent;
 
 	IOServerv01 (unsigned int httpport=80, GenMap* config0=0): IOServerGen(httpport){
@@ -129,9 +204,50 @@ public:
 		//	servertest=true;
 	}
 
-
+	unsigned connects=0, lastts=0, step=0, nstep=0;
 	void yield(){
+		//		print("-");
+		/*
+		if (WiFi.status() == WL_CONNECT_FAILED || WiFi.status() == WL_NO_SSID_AVAIL)  {
+			Serial.println(String()+"Wifi error Status:"+WiFi.status());
+			WiFi.disconnect();
+		}
+		 * /
+		const char* ssid = "Gardening, cheaper than therapy"; //replace this with your WiFi network name
+		const char* password = "seeds freedom"; //replace this with your WiFi network password
+/ *
+		if(lastts==0) lastts=millis();
+		else {
+			if(step==0 && millis()-lastts>25000) {connectAP2("helloAP","");step++;lastts=millis();}
+			if(step==1 && millis()-lastts>25000) {connectST2("bidon","bidonbidon");step++;lastts=millis();}
+			//				if(step==2 && millis()-lastts>25000) {connectST2(ssid,password);step++;lastts=millis();}
+			//				if(step==2 && millis()-lastts>25000) {WiFi.mode(WIFI_AP);Serial.println("Station wifi stopped");step++;lastts=millis();}
+			//				if(step==4 && millis()-lastts>25000) {connectST2("bidon2","bidonbidon");step++;lastts=millis();}
+			//				if(step==5 && millis()-lastts>25000) {connectST2(ssid,password);step++;lastts=millis();}
+		}
+		 */
 		//	println("IOServer yield regular function");
+
+		if(serverconnectnow && (millis()-connects)>500) {
+			println("IOServer yield starting stationconnect");
+			//delay(1000);
+			StringEvent strev=StringEvent();
+			emit(RF(EVENTCONNECTSTATION),&strev);
+			/*
+			if(nstep==0) {connectST2("bidon","bidonbidon");nstep++;}
+			else if(nstep==1) {connectST2("bidon2","bidonbidon");nstep++;}
+			else if(nstep==2) {connectST2(ssid,password);}
+			 */
+			serverconnectnow=false;
+		}
+		if(serverconnectapnow && (millis()-connects)>500) {
+			println("IOServer yield starting apconnect");
+			//delay(1000);
+			//connectAP2("helloAP","");
+			StringEvent strev=StringEvent();
+			emit(RF(EVENTCONNECTAP),&strev);
+			serverconnectapnow=false;
+		}
 
 		IOServerGen::yield();
 
@@ -196,13 +312,13 @@ public:
 	void printArguments(){
 		std::map<std::string,std::string> args=server.getArguments();
 		for(auto it : args) {
-//			uint64_t ts=0;
+			//			uint64_t ts=0;
 			println(GenString()+"Found argument : '"+it.first+"'='"+it.second+"'");
-	/*		if(it.first==RF("from") && isDigit(it.second)) {
+			/*		if(it.first==RF("from") && isDigit(it.second)) {
 				ts=strToUint64(it.second)*1000;
 				break;
 			}
-	*/	}
+			 */	}
 	}
 
 	bool handleRequest(GenString path){
@@ -221,8 +337,9 @@ public:
 		// client request boot timestamp
 		if(server.hasHeader(RF("x-BootTime"))) server.sendHeader(RF("x-BootTime"), to_string(CLOCK32.getBoottime()));//	 println("IOServerv01::handleRequest: x-BootTime true");
 
-		if(path==RF("/setWifi")) serveSetWifi();
+		if(path==RF("/setWifi")) return serveSetWifi();
 
+	//	if(path==RF("/upload"))	{serveFileUpload();return true;}
 		if(path==RF("/populateFiles"))	return servePopulate();
 
 		if(path==RF("/eraseCrashDump")) serveEraseCrashDump(path);
@@ -306,7 +423,10 @@ public:
 
 
 
-
+	void serveFileUpload(){ // upload a new file to the SPIFFS
+		println("IOServerv01::serveFileUpload");
+	  if(!server.uploadFile()) server.send(500, "text/plain", "500: couldn't create file");;
+	}
 
 
 
@@ -361,6 +481,7 @@ public:
 
 
 	bool serveFileErase(GenString &path){
+
 		bool b=1;
 		GenString p0=getArgument(RF("path"));
 		println(GenString()+RF("Fileerase : ")+path+RF(" ")+ p0);
@@ -369,6 +490,14 @@ public:
 			if(pos>=0) p0=p0.substr(pos);
 		}
 		if(config) {//check permissions
+			if(startsWith(path,"/fileeraseall")) {
+				if(writePermitted("/")){
+					CURFS.eraseAllFiles();
+					server.send(202, RF("text/html"),RF("Erased all files on the board !\n"));
+				} else server.send(202, RF("text/html"),RF("File erase protected and password didn't match !\n"));
+				return true;
+			}
+
 			if(writePermitted(p0)){
 				CURFS.erase(p0);//write file
 				server.send(200, RF("text/html"),RF("File ")+p0+ RF(" erased\n<a href='/'>back<a>"));
@@ -397,13 +526,13 @@ public:
 		return true;
 	}
 
-/*
+	/*
  To change values of the data model, a request is sent with a path :
   	  	  - starting with "/data/"
  	 	  - then the node path in the data model, e.g. "/data/nodes/humidity"
  	 	  - then as PUT/GET arguments the values "?value=0&ts=0".
  	 	  - "delete" is a special argument name that result in subpath deletion, e.g. "/data/nodes/humidity?delete=ts" or "/data/nodes?delete=humidity"
- */
+	 */
 
 
 	/////////////////////////////////////
@@ -416,7 +545,7 @@ public:
 
 		GenString datapath=path.substr(5);	// minus "/data"
 		StringMapEvent emap=StringMapEvent();
-	//	StringMapEvent todelete=StringMapEvent();
+		//	StringMapEvent todelete=StringMapEvent();
 
 		for(auto it : args) {
 			println(GenString()+"Found argument : '"+it.first+"'='"+it.second+"'");
@@ -424,8 +553,8 @@ public:
 			else emap.values.set(datapath+'/'+it.first,it.second);
 		}	// TODO: we should check if this argument is valid but how to know ? syntax-based ?
 
-//		println(GenString()+RF("IOServerv01::serveDataNode delete ")+emap.values.asJson());
-//		emit(RF("updateModel"),&todelete);	//path is name of event object while reading is the event listened to
+		//		println(GenString()+RF("IOServerv01::serveDataNode delete ")+emap.values.asJson());
+		//		emit(RF("updateModel"),&todelete);	//path is name of event object while reading is the event listened to
 
 		println(GenString()+RF("IOServerv01::serveDataNode update ")+emap.values.asJson());
 		emit(RF("updateModel"),&emap);	//path is name of event object while reading is the event listened to
@@ -450,20 +579,67 @@ public:
 		return b;
 	}
 
-
+/*
+	void stationconnect(){
+		StringEvent strev=StringEvent();
+		//		emit(RF(EVENTCONNECTSTATION),&strev);
+		connectST2(config->get(WIFI_STATION_SSID).c_str(),config->get(WIFI_STATION_PASSWORD).c_str());
+	}
+	void apconnect(){
+		StringEvent strev=StringEvent();
+		//		emit(RF(EVENTCONNECTSTATION),&strev);
+		connectAP2(config->get(WIFI_SOFTAP_SSID).c_str(),config->get(WIFI_SOFTAP_PASSWORD).c_str());
+	}*/
 	/////////////////////////////////////
 	bool serveSetWifi(){
 		GenString ssid=getArgument(RF("ssid"));
 		GenString pwd=getArgument(RF("ssidpassword"));
 		GenString mdnsname=getArgument(RF("mdnsname"));
+		GenString method=getArgument(RF("method"));
+		GenString disconnect=getArgument(RF("disconnect"));
+		StringEvent strev=StringEvent();
+		if(method==RF("softAP")){
+			if(!disconnect.empty()) {emit(RF(EVENTDISCONNECTAP),&strev);server.send(200, RF("text/html"),RF("Disconnected SoftAP wifi"));}
+			else if(!ssid.empty()){
+				if(config) {
+					config->set(WIFI_SOFTAP_SSID,ssid);
+					config->set(WIFI_SOFTAP_PASSWORD,pwd);
+					println(GenString()+"IOServer changed config to '"+config->get(WIFI_SOFTAP_SSID)+"' "+ssid);
+					//emit(RF(EVENTCONNECTAP),&strev);
+					serverconnectapnow=true;
+					connects=millis();
+					//connectAP2(ssid.c_str(),pwd.c_str());
+					server.send(200, RF("text/html"),RF("Created SoftAP wifi"));
+				}
+			}
+			return true;
+		}
+		if(method==RF("station")){
+			if(!disconnect.empty()) {emit(RF(EVENTDISCONNECTSTATION),&strev);server.send(200, RF("text/html"),RF("Disconnected from station wifi"));}
+			else if(!ssid.empty()){
+				if(config) {
+					config->set(WIFI_STATION_SSID,ssid);
+					config->set(WIFI_STATION_PASSWORD,pwd);
+					server.send(200, RF("text/html"),RF("Connecting to station wifi"));
+					serverconnectnow=true;
+					connects=millis();
+					//emit(RF(EVENTCONNECTSTATION),&strev);
+				}
+			}
+			return true;
+		}
+		if(ssid.empty() && disconnect.empty())	server.send(200, RF("text/html"),RF("Please, provide wifi ssid/password to save to /wificonfig.txt !"));
+		return true;
+		/*
 		if(!ssid.empty() && !pwd.empty())
 		{
 			GenString str=GenString(RF("wifi-ssid: "))+ssid+RF("\nwifi-password: ")+pwd+"\n";
 			if(!mdnsname.empty()) str+=RF("server-mdns-name: ")+mdnsname+"\n";
-			CURFS.rewriteFile("/wificonfig.txt",(unsigned char *)str.c_str(), str.size());
+			//	CURFS.rewriteFile("/wificonfig.txt",(unsigned char *)str.c_str(), str.size());
+
 			// or we reboot
-			serverticker.once_ms(2000, rebootEsp);
-			server.send(200, RF("text/html"),RF("Wifi ssid/password & mdns name successfully saved to /wificonfig.txt, rebooting..."));
+			//	serverticker.once_ms(2000, rebootEsp);
+			//	server.send(200, RF("text/html"),RF("Wifi ssid/password & mdns name successfully saved to /wificonfig.txt, rebooting..."));
 
 			// or we try to load config and connect wifi without reboot (how does the server survives)
 			// but we need a handle for that, configuration object is suppose to handle reconfiguration
@@ -473,10 +649,7 @@ public:
 			// there is also events
 
 			return true;
-		} else {
-			server.send(200, RF("text/html"),RF("Please, provide wifi ssid/password to save to /wificonfig.txt !"));
-			return true;
-		}
+		}*/
 	}
 
 
@@ -505,47 +678,80 @@ public:
 
 		//// serve a backup page
 		StringEvent strev=StringEvent();
-		emit(RF("getStationIP"),&strev);	// get the data by sync event rather than through getAsJson
-
-		// compile list of files into a html string
-		GenString flist;
-		std::vector<FileFS>fslist=CURFS.listFiles("/","");
-		if(fslist.empty()) flist=RF("<b>No files on Board !\n</b>");
-		bool indexfound=false;
-		for(FileFS fs:fslist){
-			GenString fname=fs.name;
-			if(fs.name==RF("/index.html") || fs.name==RF("/index.html.gz")) indexfound=true;
-			//	println(GenString()+"Server found file :"+fs.name);
-			flist+=RF("<li><a href='")+fs.name+RF("'>")+fs.name+RF("</a><font style='font-size:75%'> - ")+to_string(fs.size)+RF("bytes - </font><a href='/fileerase?path=")+fs.name+RF("' style='font-size:60%;' onclick='return confirm(\"Are you sure you want to erase this file?\")'>(erase)</a></li>");
-		}
-		if(!fslist.empty()) flist+=RF("</ul>");
-		if(!indexfound) flist+=RF("<br>No index.html (or index.html.gz) detected on board ! <br>");
-
+		emit(RF(WIFI_STATION_GETIP),&strev);	// get the data by sync event rather than through getAsJson
+		StringEvent ststatusstrev=StringEvent();
+		emit(RF(WIFI_STATION_GETSTATUS),&ststatusstrev);	// get the data by sync event rather than through getAsJson
+		StringEvent apstrev=StringEvent();
+		emit(RF(WIFI_SOFTAP_GETIP),&apstrev);
 		// send title
 		server.setContentLength(CONTENT_LENGTH_UNKNOWN);
-		server.send (200, RF("text/html"), RF("<h2>IOktopus rescue page </h2>"));
+		server.send (200, RF("text/html"), RF("<!DOCTYPE html><html><body><h2>IOktopus rescue page </h2>"));
 
 		//send wifi status
 		server.sendContent(RF("<h3>Wifi </h3>"));
-		GenString ssid=config->get(RF("wifi-ssid"));
-		// send also link to local ip, if connected
-		if(!strev.str.empty()){
+
+		bool apconnected=!apstrev.str.empty() && apstrev.str!=RF("(IP unset)");
+		bool staconnected=!strev.str.empty() && strev.str!=RF("(IP unset)");
+
+		if(staconnected || apconnected){
+			// send also link to local ip, if connected
+			struct anonstruct {void sendLink(GenString &str, CurWebServer *server,GenString str0){
+				server->sendContent(str0);
+				server->sendContent(str);
+				server->sendContent(RF(SERVERBACKUPPAGEPRE21));
+				server->sendContent(str);
+				server->sendContent(RF(SERVERBACKUPPAGEPRE22));
+			};} ffunc;
 			server.sendContent(RF(SERVERBACKUPPAGEPRE1));
-			server.sendContent(strev.str);
-			server.sendContent(RF(SERVERBACKUPPAGEPRE2));
-			server.sendContent(strev.str);
-			server.sendContent(RF(SERVERBACKUPPAGEPRE3));
-			if(!ssid.empty()) server.sendContent(GenString()+RF("Connected to wifi network ssid '")+ssid+"'<br>");
-		} else {
-			if(!ssid.empty()) server.sendContent(GenString()+RF("Could not connect to wifi network ssid '")+ssid+"'<br>");
-			else server.sendContent(GenString()+RF("No wifi network ssid name provided<br>"));
+			if(staconnected) ffunc.sendLink(strev.str,&server,RF(SERVERBACKUPPAGEPRE2));
+			println(GenString()+"APSTREV: '"+apstrev.str+"'");
+			if(apconnected) ffunc.sendLink(apstrev.str,&server,RF(SERVERBACKUPPAGEPRE3));
+			server.sendContent(RF(SERVERBACKUPPAGEPRE4));
 		}
+		println(GenString()+"ststatusstrev.str:"+ststatusstrev.str);
+		GenString ssid=config->get(RF(WIFI_STATION_SSID));
+		GenString ststatus=RF("status unknown with ssid");
+		if(ststatusstrev.str==RF("STATION_STATUS_DISCONNECTED")) ststatus=RF("Not connected to");
+		else if(ststatusstrev.str==RF("STATION_STATUS_CONNECTING")) ststatus=RF("Connecting to");
+		else if(ststatusstrev.str==RF("STATION_STATUS_CONNECTED")) ststatus=RF("Connected to");
+		else if(ststatusstrev.str==RF("STATION_STATUS_CONNECTED_INTERNET")) ststatus=RF("Connected with internet to");
+		else if(ststatusstrev.str==RF("STATION_STATUS_PASSWORD_REJECTED")) ststatus=RF("Password rejected for");
+		else if(ststatusstrev.str==RF("STATION_STATUS_SSID_UNAVAILABLE")) ststatus=RF("Not found ssid");
+
+		if(!ssid.empty()) server.sendContent(GenString()+RF("Station: ")+ststatus+" '"+ssid+"'<br>");
+		else server.sendContent(GenString()+RF("Station: No wifi network ssid name provided<br>"));
+
+		GenString apssid=config->get(RF(WIFI_SOFTAP_SSID));
+		if(apconnected){// has ip
+			if(!apssid.empty()) server.sendContent(GenString()+RF("SoftAP: Created and connected to wifi network ssid '")+apssid+"'<br>");
+		} else {	//has no ip
+			if(!apssid.empty()) server.sendContent(GenString()+RF("SoftAP: Inactive for '")+apssid+"'<br>");
+			else server.sendContent(GenString()+RF("SoftAP: No wifi network ssid name provided<br>"));
+		}
+
 
 		server.sendContent(RF(SERVERBACKUPPAGE_WIFI));
 
 		// send files
-		server.sendContent(RF("<h3>Files on board </h3>"));
-		server.sendContent(flist);
+		server.sendContent(RF("<h3>Files on board  <a href='/fileeraseall' style='font-size:80%;font-weight:normal;' onclick='return confirm(\"Are you sure you want to erase all files?\")'>(erase all/format)</a></h3>"));
+		//		server.sendContent(flist);
+
+
+		GenString flist;
+		std::vector<FileFS>fslist=CURFS.listFiles("/","");
+		if(fslist.empty()) server.sendContent(RF("<b>No files on Board !\n</b>"));
+		else server.sendContent(RF("<ul>"));
+		bool indexfound=false;
+		for(FileFS fs:fslist){
+			//	GenString fname=fs.name;
+			if(fs.name==RF("/index.html") || fs.name==RF("/index.html.gz")) indexfound=true;
+			//	println(GenString()+"Server found file :"+fs.name);
+			if(fs.name==RF("/.") || fs.name==RF("/..")) continue;
+			server.sendContent(GenString()+RF("<li><a href='")+fs.name+RF("'>")+fs.name+RF("</a><font style='font-size:75%'> - ")+to_string(fs.size)+RF("bytes - </font><a href='/fileerase?path=")+fs.name+RF("' style='font-size:60%;' onclick='return confirm(\"Are you sure you want to erase this file?\")'>(erase)</a></li>"));
+		}
+		if(!fslist.empty()) server.sendContent(RF("</ul>"));
+		if(!indexfound) server.sendContent(RF("<br>index.html (or index.html.gz) not detected on board ! <br>"));
+
 
 		// send populating progress
 		//	if(bootstrapDownloading) server.sendContent("Populating in progress is slowing down the server, wait before requesting more pages !");
@@ -557,9 +763,17 @@ public:
 					RF(" files downloaded<br><pre>")+bootstrapMessage+RF("</pre>"));
 		}
 		// send populating form
-		server.sendContent(RF("<h4>Populate </h4>"));
+		server.sendContent(RF("<h3>Upload to board</h3>"));
 		server.sendContent(RF(SERVERBACKUPPAGE_POPULATE));
 
+		server.sendContent(RF(SERVERBACKUPPAGE_UPLOAD1));
+		server.sendContent(RF(SERVERBACKUPPAGE_UPLOAD2));
+
+
+		server.sendContent(RF("</body></html>"));
+		//
+		//	server.sendContent("0\r\n\r\n");
+		//	server.sendContent("");
 		return true;
 	}
 
@@ -694,6 +908,15 @@ public:
 		//	webSocket.begin();                                // start webSocket server
 		//	webSocket.onEvent(webSocketEvent);                // callback function
 
+		server.on("/upload", HTTP_POST,                       // if the client posts to the upload page
+				[](){ statinst->server.send(200);},
+				[](){ statinst->serveFileUpload();}
+
+		//    },                          // Send status 200 (OK) to tell the client we are ready to receive
+		//	[](){ statinst->serveFileUpload(); }                                    // Receive and save the file
+		  );
+
+
 		const char * headerkeys[] = {"x-BootTime","Accept"} ;
 		size_t headerkeyssize = sizeof(headerkeys)/sizeof(char*);
 		//ask server to track these headers
@@ -721,6 +944,10 @@ public:
 	 */
 private:
 };
+
+//void sendok(){if(statinst) statinst->server.send(200);};
+//void sendupload(){if(statinst) statinst->serveFileUpload();};
+
 #undef FTEMPLATE
 #define FTEMPLATE ".irom.text.getcontenttype"
 std::string  getContentType( std::string  filename, bool download) {	//exist somewhere (in esp8266webserver.h) should not be duplicated

@@ -37,11 +37,11 @@ public:
 		}
 #endif
 
-        Serial.println("CurWebServerEsp8266 starting server");
+		Serial.println("CurWebServerEsp8266 starting server");
 		server.begin();
 
 #if USEMDNS
- 	 	 if(mdnsstarted) MDNS.addService("http", "tcp", 80);
+		if(mdnsstarted) MDNS.addService("http", "tcp", 80);
 #endif
 	};
 
@@ -51,16 +51,24 @@ public:
 	void on(std::string path, HTTPMethod getpost, void (*func)()){
 		server.on(path.c_str(), getpost, func);
 	};
+	void on(std::string path, HTTPMethod getpost, void (*func)(),void (*func2)()){
+			server.on(path.c_str(), getpost, func,func2);
+		};
 	void onNotFound(void (*func)()){server.onNotFound(func);};
 	void handleClient(){
 #if USEMDNS
 		if(mdnsstarted) MDNS.update();
 #endif
-		server.handleClient();};//do nothing
+		server.handleClient();
+	};
 	void sendHeader( std::string header, std::string value){server.sendHeader(header.c_str(), value.c_str());};
-
+	void send(int status){server.send(status);};
 	void send(int status, std::string type, std::string message){server.send(status, type.c_str(), message.c_str());};
-	void sendContent(std::string message){server.sendContent(message.c_str());};
+	void sendContent(std::string message){
+		server.sendContent(message.c_str());
+		//	if(message.size()==0) server.client().stop();	//seems useless
+		//	yield();	//seems useless too
+	};
 	void setContentLength(const size_t contentLength){server.setContentLength(contentLength);};
 
 	size_t streamFile(std::string path, std::string contentType,unsigned long start=0,unsigned long stop=0){
@@ -91,12 +99,12 @@ public:
 		unsigned int sent=0,sentall=0;
 		char* buff=(char *) malloc(n);
 		String nope="";
-//		server.send(200, contentType.c_str(), "");
+		//		server.send(200, contentType.c_str(), "");
 		server.sendContent(String()+RF("HTTP/1.1 200 OK\r\nContent-Type:")+contentType.c_str()+RF("\r\n\r\n")); //send headers
 		file.seek(start, SeekSet);
 		while (file.position()<stop)
 		{
-			Serial.println("reading");
+			//		Serial.println("reading");
 			unsigned int nn=n;
 			if((sentall+nn)>stop) nn=stop-sentall;
 			sent= file.readBytes(buff, nn);
@@ -112,8 +120,32 @@ public:
 		return sentall;
 	}
 
+	File fsUploadFile;
+	bool uploadFile(){
+		HTTPUpload& upload = server.upload();
+		println(GenString()+"handleFileUpload "+to_string(upload.status)+" "+to_string(UPLOAD_FILE_START));
+		if(upload.status == UPLOAD_FILE_START){
+			String filename = upload.filename;
+			if(!filename.startsWith("/")) filename = "/"+filename;
+			Serial.print("handleFileUpload name: "); Serial.println(filename);
+			fsUploadFile = SPIFFS.open(filename, "w");            // Open the file for writing in SPIFFS (create if it doesn't exist)
+			filename = String();
+		} else if(upload.status == UPLOAD_FILE_WRITE){
+			if(fsUploadFile)
+				fsUploadFile.write(upload.buf, upload.currentSize); // Write the received bytes to the file
+		} else if(upload.status == UPLOAD_FILE_END){
+			if(fsUploadFile) {                                    // If the file was successfully created
+				fsUploadFile.close();                               // Close the file again
+				Serial.print("handleFileUpload Size: "); Serial.println(upload.totalSize);
+				//  server.sendHeader("Location","/success.html");      // Redirect the client to the success page
+				//  server.send(303);
+			} else {
+				return false;
 
-
+			}
+		}
+		return true;
+	}
 
 	std::string uri(){return std::string(server.uri().c_str());};
 	std::map<std::string,std::string> getArguments(){

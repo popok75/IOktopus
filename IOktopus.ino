@@ -3,7 +3,7 @@
 /*
 	For testing sensors use :
 		- DHT22 :
-*/
+ */
 #ifndef x86BUILD
 #define ESP8266BUILD// need to redefine FTEMPLATE every few headers // https://www.bountysource.com/issues/46510369-using-pstr-and-progmem-string-with-template-class-causes-section-type-conflict //#define FF(string_literal) (reinterpret_cast<const __FlashStringHelper *>(((__extension__({static const char __c[] __attribute__((section(".irom.text.template"))) = ((string_literal)); &__c[0];})))))//#define RF(x) String(FF(x)).c_str()
 #define FFX(string_literal) (reinterpret_cast<const __FlashStringHelper *>(((__extension__({static const char __c[] __attribute__((section(FTEMPLATE))) = ((string_literal)); &__c[0];})))))
@@ -16,9 +16,10 @@
 
 
 
+
 #include "datastruct/GenString.h"
 
-#include "datastruct/GenMap.H"
+#include "datastruct/GenMap.H" 
 #include "datastruct/GenTreeMap.H"
 
 #include "infrastructure/CompatPrint.h"
@@ -68,6 +69,44 @@ Ticker mainticker;
 const char* ssid = "Gardening, cheaper than therapy"; //replace this with your WiFi network name
 const char* password = "seeds freedom"; //replace this with your WiFi network password
 
+/*
+bool staon=false, apon=false;
+static bool connectAP(const char *ssid1,const char *password1){
+	if(staon) WiFi.mode(WIFI_AP_STA);
+	else WiFi.mode(WIFI_AP);
+	apon=true;
+	WiFi.softAP(ssid1, password1);  //Start HOTspot removing password will disable security
+
+	IPAddress myIP = WiFi.softAPIP(); //Get IP address
+	Serial.println(String()+"created AP :"+ssid1);
+	Serial.print("IP address:");
+	Serial.println(myIP);
+	//   mode="AP";
+	return true;
+}
+static bool connectST1(const char *ssid1,const char *password1){
+	// Connect to WiFi network
+	if(apon) WiFi.mode(WIFI_AP_STA);
+	else WiFi.mode(WIFI_STA);
+	staon=true;
+	WiFi.begin(ssid1, password1);
+	Serial.println("");
+	unsigned int ts=millis(), timeout=30000;
+	// Wait for connection
+	while (WiFi.status() != WL_CONNECTED && (millis()-ts)<timeout) {
+		delay(500);
+		Serial.print(".");
+	}
+	if( WiFi.status() == WL_CONNECTED) {
+		Serial.println(String()+"Connected to "+ssid1+" in "+String((millis()-ts)/1000)+"seconds");
+		Serial.print("IP address: ");
+		Serial.println(WiFi.localIP());
+	} else Serial.println(String()+"Wifi connection to station failed "+ssid1+" in "+String((millis()-ts)/1000)+"seconds");
+	return WiFi.status() == WL_CONNECTED;
+}
+*/
+
+
 void setup(){
 
 	initPrint();
@@ -77,8 +116,8 @@ void setup(){
 	CurSaveCrash.setTimestampFunc(&getTimestampString);
 	if(CURFS.exists(CRASHFILEPATH)){
 		println(RF("\n#################### Crash dump file start"));
-	//	unsigned int fs=0;
-	//	CURFS.printFile(CRASHFILEPATH,fs);// temporarily disabled, useful only in deployment
+		//	unsigned int fs=0;
+		//	CURFS.printFile(CRASHFILEPATH,fs);// temporarily disabled, useful only in deployment
 		println(RF("#################### Crash dump file end"));
 
 	} else println(RF("\nNo crash dump saved"));
@@ -111,26 +150,13 @@ void setup(){
 	println("File list end");
 	config.loadTxtFile(RF(WIFIPASSFILE));
 	config.loadTxtFile(RF("/config.txt")); // +256sram -824 freeheap
-
+//	  CURFS.eraseAllFiles();
 	// connect to ssid/make an ap
 	wifiman.initFromConfig(&config.configmap);
-	/*
-	// Connect to WiFi network
-	  WiFi.mode(WIFI_STA);
-	  WiFi.begin(ssid, password);
-	  Serial.println("");
 
-	  // Wait for connection
-	  while (WiFi.status() != WL_CONNECTED) {
-	    delay(500);
-	    Serial.print(".");
-	  }
-	  Serial.println("");
-	  Serial.print("Connected to ");
-	  Serial.println(ssid);
-	  Serial.print("IP address: ");
-	  Serial.println(WiFi.localIP());
-	/ *
+//	connectST1(ssid,password);
+
+	/*
 	if(!CURFS.exists(CRASHFILEPATH)){
 		//crash
 		 Serial.println("Attempting to divide by zero ...");
@@ -145,7 +171,7 @@ void setup(){
 	//CURFS.eraseAllFiles();
 
 
-//	return;
+	//	return;
 
 	//delay(5000);
 
@@ -164,7 +190,13 @@ void setup(){
 	ioserver->on("getAsJson",iodata); // instead we set iodata to be called on getAsJson event fired by the server (we use sync event to get the result back immediately)
 	ioserver->on("updateModel",iodata);	// also if use modify the data through the server, we need to notify
 	ioserver->on("getStationIP",&wifiman);	// server will fire getStationIP toward wifiman in order to include in backup page
-//	println("ioktopus starting ioserver");
+	ioserver->on("getSoftAPIP",&wifiman);
+	ioserver->on("getStationStatus",&wifiman);
+	ioserver->on("ConnectStation",&wifiman);
+	ioserver->on("DisconnectStation",&wifiman);
+	ioserver->on("ConnectAP",&wifiman);
+	ioserver->on("DisconnectAP",&wifiman);
+	//	println("ioktopus starting ioserver");
 	ioserver->start();
 
 	// create log
@@ -174,7 +206,7 @@ void setup(){
 	ioserver->on(RF("getLogJson"),iologger); 	// the server will use events to get the log as json, again using sync event result
 
 	// load devices
-	loadDevices();
+	//loadDevices();
 
 	errLog("IOktopus started successfully");
 	println("\n\nIOktopus started successfully !\n");
@@ -182,85 +214,33 @@ void setup(){
 
 
 	//	downloadFile();
-//	mainticker.once_ms(1000, testDownload);
+	//	mainticker.once_ms(1000, testDownload);
 
 
 
-	//testDownload();
-	//return;
-	/*
- 	config.configmap.set("device0-model","DHT22");
-	config.configmap.set("device0-pins","D5");
-	config.configmap.set("device0-autoreader","5");
-	IODeviceFactory::create(0,&config.configmap, RF("updateModel"),iodata);
-	 */
-	//	config.configmap.set("device1-model","Psychrometer");
-	//	config.configmap.set("device1-autoreader","5");
-	//	IODeviceFactory::create(1,&config.configmap, RF("updateModel"),iodata);
-	/*
- 	config.configmap.set("device2-model","DS18B20");
-	config.configmap.set("device2-pins","D7");
-	config.configmap.set("device2-autoreader","5");
-	IODeviceFactory::create(2,&config.configmap, RF("updateModel"),iodata);
-
-	config.configmap.set("device2-model","Psychrometer");
-	config.configmap.set("device2-pins","D7, D7");
-	config.configmap.set("device2-autoreader","5");
-	IODeviceFactory::create(2,&config.configmap, RF("updateModel"),iodata);
-	 *//*
-	config.configmap.set("device3-model","HTU21");
-	config.configmap.set("device3-pins","D2, D1");
-	config.configmap.set("device3-autoreader","5");
-	IODeviceFactory::create(3,&config.configmap, RF("updateModel"),iodata);
-	  *//*
-	config.configmap.set("device4-model","SHT15");
-	config.configmap.set("device4-pins","D0, D3");
-	config.configmap.set("device4-autoreader","5");
-	IODeviceFactory::create(4,&config.configmap, RF("updateModel"),iodata);
-
-	// create sensor
-	/ *
-		IODeviceGen*iosensor4= IODeviceFactory::create(0,"Outdoor","DHT22",{D5},
-					{{"temperature","DHT22-temperature"},{"humidity","DHT22-Humidity"}},"/nodes/","v0.1");
-		iosensor4->on("updateModel",iodata);
-		iosensor4->init();
-		iosensor4->getReader()->autoread(5);
-	   */	/*	IODeviceGen*iosensor0= IODeviceFactory::create(0,"Outdoor","HTU21",{D2,D1},
-				{{"temperature","HTU21-temperature"},{"humidity","HTU21-Humidity"}},"/nodes/","v0.1");
-		iosensor0->on("updateModel",iodata);
-		iosensor0->init();
-		iosensor0->getReader()->autoread(5);
-
-	/ *	iosensor= IODeviceFactory::create(0,"Outdoor","SHT15",{D0,D3},
-				{{"temperature","SHT15-temperature"},{"humidity","SHT15-Humidity"}},"/nodes/","v0.1");
-		iosensor->on("updateModel",iodata);
-		iosensor->init();
-		iosensor->getReader()->autoread(5);
-
-/ *		IODeviceGen* iosensor2= IODeviceFactory::create(1,"Fridge","Psychro-DSB18B20",{D7,D7},{{"humidity","BulbHumidity"},{"temperature-wet","WetBulb"},{"temperature-dry","DryBulb"}},"/nodes/","v0.1");
-		iosensor2->on("updateModel",iodata);
-		iosensor2->init();
-		iosensor2->getReader()->autoread(5);
-		/ *
-		IODeviceGen* iosensor2= IODeviceFactory::create(1,"Fridge","DSB18B20",{D7},{{"path","WetBulb"}},"/nodes/","v0.1");
-		iosensor2->on("updateModel",iodata);
-		iosensor2->init();
-		iosensor2->getReader()->autoread(5);
-
-		IODeviceGen* iosensor3= IODeviceFactory::create(2,"Fridge","DSB18B20",{D7},{{"path","DryBulb"}},"/nodes/","v0.1");
-		iosensor3->on("updateModel",iodata);
-		iosensor3->init();
-		iosensor3->getReader()->autoread(5);
-	    */
 #ifdef ESP8266
 	print(RF("<--------main::setup - memory at end of setup:"));	 println(ESP.getFreeHeap(),DEC);
 #endif
 
 
 }
-void loop(){
+//unsigned int lastts=0;
+//unsigned int step=0;
+void loop(void) {
+/*
+	if(lastts==0) lastts=millis();
+	else {
+		if(step==0 && millis()-lastts>25000) {connectAP("helloAP","");step++;lastts=millis();}
+		if(step==1 && millis()-lastts>25000) {connectST1("bidon","bidonbidon");step++;lastts=millis();}
+		if(step==2 && millis()-lastts>25000) {connectST1(ssid,password);step++;lastts=millis();}
+		if(step==3 && millis()-lastts>25000) {WiFi.mode(WIFI_AP);Serial.println("Station wifi stopped");step++;lastts=millis();}
+		if(step==4 && millis()-lastts>25000) {connectST1("bidon2","bidonbidon");step++;lastts=millis();}
+		if(step==5 && millis()-lastts>25000) {connectST1(ssid,password);step++;lastts=millis();}
+	}
+*/
 	// Serial.print(".");
 	//   Serial.print("loop : free memory :");  Serial.println(ESP.getFreeHeap(),DEC);
+	wifiman.yield();
 	if(ioserver) ioserver->yield();
 	yield();
 	delay(10);	//slow down server reaction compared to the rest ?

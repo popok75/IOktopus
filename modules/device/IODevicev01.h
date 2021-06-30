@@ -4,7 +4,7 @@
 
 #include "../../infrastructure/CompatIO.h"
 
-
+#include "../../infrastructure/iodrivers/IOBurster.h"
 
 #include "IODeviceGen.h"
 
@@ -17,20 +17,35 @@
 #define PATH_KEYWORD "path"
 #define DEFAULT_PATH "/nodes/"
 
+class IODevicev01;
+
+class IODeviceListener : public IODriverListener
+{
+	IODevicev01 *mydevice;
+public:
+	IODeviceListener(IODevicev01*mydevice0):mydevice(mydevice0){};
+	virtual void notify(unsigned channel){};
+};
+
 class IODevicev01: public IODeviceGen
 {
-	IOReader *reader=0;
+	IODriver *driver;
+	IODeviceListener *driverListener=0;
+
 	GenMap *config;	// could use instead the same info stored in GenReader
 
+
+
 public:
-	virtual IOReader *getReader(){return reader;}
+//	virtual IOReader *getReader(){return reader;}
+	virtual IODriver *getDriver(){return driver;}
 /*
 	IODevicev01 (unsigned int num0,GenString name0, GenString modelname0, std::vector<unsigned int> pins0, GenMap subpaths0, GenString path0):IODeviceGen(num0, name0, modelname0,pins0,subpaths0,path0){
 		println(RF("Constructor IODevicev01"));
 		if(path[path.length()-1]=='/') path.erase(path.length()-1);	// can take /path/ or /path ending
 	};
 */
-	IODevicev01 (unsigned int num0, GenMap *globalconfig ){
+	IODevicev01 (unsigned int num0, GenMap *globalconfig){
 			println(RF("Constructor IODevicev01 num :")+to_string(num0));
 			config=globalconfig;
 			num=num0;
@@ -42,22 +57,23 @@ public:
 	void init(){
  		println("IODevicev01::init");
 		GenString modelname=config->get(getFN(RF("model"),num));
-		if(!reader && IOFactory::isSensor(modelname)) {
-//			GenString pins=config->get(getFN(RF("pins")));
-//			std::vector<unsigned int> pinvect=getPins(pins);
+		if(!driver && IOFactory::isSensor(modelname)) {
 			GenString pins=config->get(getFN(RF("pins"),num));
 			GenString model0=config->get(getFN(RF("model"),num));
-			reader=IOFactory::createReader(model0,num,IOFactory::getPinsFromString(pins));
-			if(!reader) return ;	//how to notify error
+			driver=IOFactory::createDriver(model0,num,IOFactory::getPinsFromString(pins));
+			//reader=IOFactory::createReader(model0,num,IOFactory::getPinsFromString(pins));
+			if(!driver) return ;	//how to notify error
 	//		println("IODevicev01::init2");
-
-			reader->on(this);//&devicelistener);
+			driverListener=new IODeviceListener(this);
+			driver->setListener(driverListener);
+			driver->init();
+		//	reader->on(this);//&devicelistener);
 //			println("IODevicev01::init3");
-			reader->init();
+			//reader->init();
 
 			GenString autoreader=config->get(getFN(RF(AUTOREADER_KEYWORD),num));
-			if(isDigit(autoreader)){
-				reader->autoread((unsigned int)strToUnsignedLong(autoreader));
+			if(isDigit(autoreader)){	// and if is an input and not output
+				driver->autoread((unsigned int)strToUnsignedLong(autoreader));
 			}
 
 //			reader->autoread(5);

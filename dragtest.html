@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+
+<body>
+	<p>You can also drag to this window or choose "data" directory / files to upload:</p>
+	<div>
+		<div style="display: inline;" class="picker">
+			<input type="file" id="picker" name="fileList" webkitdirectory
+				multiple>
+		</div>
+		<div
+			style="display: inline-table; width: 200px; border: 1px solid; border-radius: 10px; text-align: center;">
+			<p style="vertical-align: middle;">Drop here</p>
+		</div>
+	</div>
+
+
+	<ul id="listing">
+	</ul>
+	<script>
+	var geid=document.getElementById.bind(document);
+	var listing = geid("listing");
+	var prefix="/data";
+	function trimname(fname){if(fname.startsWith(prefix)) return fname.substring(prefix.length); else return fname;}
+	function uploadFiles(files){	
+		function upload(fileentry,cb) {	
+			var fullpath;
+			function updateProgress(ok,val){
+				var name="progress-"+fullpath;
+				//if(!val) name+="-ended";
+				var progress=geid(name);
+				if(val) {progress.value=val;return;}
+				if(!ok) {
+					progress.value="";
+					progress.parentElement.append(" - failed !");
+				} else progress.parentElement.append(" - done !");
+				progress.id+="-ended";
+			}
+			function sendit(file){
+				var xhr = new XMLHttpRequest();
+				xhr.open("post", "/upload", true);			
+				xhr.onload = function(e) {
+					console.log("status:"+this.status);				
+					if(this.status!=200) updateProgress(false);				
+					else updateProgress(true);
+					if(cb) cb(e);	       
+				};
+				xhr.onerror = function(e) {
+					console.log("xhr error :"+e);
+					updateProgress(false);
+					if(cb) cb(e);
+				}
+				xhr.upload.addEventListener('progress', function(e) {
+					var percent_complete = (e.loaded / e.total)*100;	    	
+					//console.log(percent_complete);console.log(fullpath);
+					updateProgress(false,percent_complete);
+				});
+				var formData = new FormData(), fname=trimname(fullpath);
+				formData.append(fname, file, fname);
+				xhr.send(formData);		
+			}
+			if(fileentry.file) {
+				fullpath=fileentry.fullPath;
+				fileentry.file(sendit);
+			} else {
+				fullpath="/"+fileentry.webkitRelativePath;
+				sendit(fileentry);			 
+			}
+		}
+		if(files.length){
+			var f=files.shift();
+			function upf(){setTimeout(function(){var f=files.shift();if(f) upload(f,upf);},100);};
+			upload(f,upf);
+		}	 
+	}
+
+	function afterlist(files){
+		files=Array.from(files);
+		//show files
+		for (var i in files) {
+			var file=files[i], fname;
+			var item = document.createElement('li');
+			if(file.webkitRelativePath) fname = "/"+file.webkitRelativePath;
+			else fname = file.fullPath;
+			var progress="<progress value=0 id='progress-"+fname+"'></progress>";
+			fname=trimname(fname);
+			item.innerHTML = fname+" "+progress;
+			listing.appendChild(item);	     
+		};
+		//upload files
+		uploadFiles(files);
+	}
+	var dropzone=document.documentElement;
+	dropzone.addEventListener("dragover", function(event) {event.preventDefault();}, false);
+	dropzone.addEventListener("drop", function(event) {
+		var counter=0;
+		function scanFiles(item,filelist,cbf) {
+			if (item.isDirectory) {
+				counter++;
+				var directoryReader = item.createReader();
+				directoryReader.readEntries(function(entries) {
+					for(var k in entries) scanFiles(entries[k],filelist,cbf);
+					counter--;
+					if(counter==0) cbf(filelist);
+				});
+			} else filelist.push(item); //if file add it
+		};
+
+		event.preventDefault();
+		var items = event.dataTransfer.items, filelist=[];
+		for (var i=0; i<items.length; i++) {
+			var item = items[i].webkitGetAsEntry();
+			if (item) scanFiles(item,filelist,afterlist);
+		}
+	}, false);
+
+	var picker = geid('picker');
+	picker.addEventListener('change', e => {afterlist(e.target.files);});
+
+
+ </script>
+</body>
+</html>

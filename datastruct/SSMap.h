@@ -49,7 +49,7 @@ public:
 	bool multimap=true;	//if it is true, a set for a key do not remove previous entry, is only canceled when value is also already there
 
 	SSMap(){data=StringType()+smcinterpair;};
-	SSMap(bool uniquekeys0){data=StringType()+smcinterpair;};
+	SSMap(bool uniquekeys0){data=StringType()+smcinterpair;multimap=!uniquekeys0;};
 
 	SSMap(SSMap &original){keys=original.size(); data=original.data;}//copy
 	SSMap(const SSMap &original){keys=original.keys; data=original.data;}//copy
@@ -82,8 +82,9 @@ public:
 		if(!multimap){
 			unsigned int i=nextKey(key),ds=data.size();
 			if(i<ds){	// update content of key
-				unsigned j=nextKey(i+1)+key.size()+1; // ??? debug here
-				data.erase(i,j-i);
+				unsigned j=nextKey(i+1);
+				i+=key.size()+1; // replace only value
+				data.erase(i,j-i-1);
 				data.insert(i,value);
 				return true;
 			}

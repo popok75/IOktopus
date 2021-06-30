@@ -27,7 +27,7 @@ class IOReader : public DefaultEventEmitter
 public:
 
 	uint32_t mstimestamp=0;
-	uint32_t reqms=0,tickms=10,minafterread=1000;
+	uint32_t reqms=0, tickms=10, minafterread=1000;
 
 	Ticker ticker, ticker2;
 

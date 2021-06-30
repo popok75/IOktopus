@@ -34,6 +34,7 @@ public:
 	void printFiles(std::string path0="");
 
 	bool erase(std::string path) ;
+	bool eraseAllFiles() {return false;};	// not implemented.. yet ?
 	unsigned int appendToFile(std::string path, std::vector<unsigned char> &vect);
 	unsigned int rewriteFile(std::string path, std::vector<unsigned char> &vect) ;
 	unsigned int rewriteFile(std::string path, unsigned char *buff, unsigned int size) ;

@@ -3,7 +3,7 @@
 
 #define AUTOREADER_KEYWORD "autoread"
 
-#include "BasicReader.h"
+#include "IODriver.h"
 
 
 //#include "../../datastruct/GenString.h"
@@ -62,6 +62,9 @@ class IOFactory {
 
 public:
 	static bool isSensor (GenString model0){return true;};
+
+	static IODriver *createDriver (GenString model0, unsigned int num, std::vector<unsigned int>pinvect){
+		return IOFactorycreateDriver(model0,num,pinvect);}
 /*
 	static IOReader*getReader(std::vector<unsigned int> pins0){
 	//	if(!_sensors) return 0;
@@ -72,7 +75,7 @@ public:
 //	static IOReader *createSensor (GenString model0, std::vector<unsigned int> &pins, GenString name=""){
 #undef FTEMPLATE
 #define FTEMPLATE ".irom.text.iofactory2"
-	static IOReader *createReader (GenString model0, unsigned int num, std::vector<unsigned int>pinvect){ //GenString model0, std::vector<unsigned int> &pins, GenString name=""){
+/*	static IOReader *createReader (GenString model0, unsigned int num, std::vector<unsigned int>pinvect){ //GenString model0, std::vector<unsigned int> &pins, GenString name=""){
  //		println(RF("IOFactory::createSensor"));
 
 		IODriver *ndriver=IOFactorycreateDriver(model0,num,pinvect);
@@ -84,6 +87,7 @@ public:
 #endif
 		return genreader;
 	};
+	*/
 #undef FTEMPLATE
 #define FTEMPLATE ".irom.text.iofactory3"
 	static unsigned int getPin(GenString pinstr){

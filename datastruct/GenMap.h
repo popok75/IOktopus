@@ -334,15 +334,15 @@ class GenSSMap : public GenMapProto, SSMap {	// the bigger the string supporting
 													// maybe should be a version split in blocks of limited size ?
 												// in addition stringtype used by ssmap can be subjected to size limitation
 public:
-	GenSSMap():GenMapProto(), SSMap(){}
-	GenSSMap( std::initializer_list<std::initializer_list<GenString>> init_list):GenMapProto(), SSMap(){
+	GenSSMap():GenMapProto(), SSMap(){multimap=false;}
+	GenSSMap( std::initializer_list<std::initializer_list<GenString>> init_list):GenMapProto(), SSMap(){multimap=false;
 		initFromBraced(init_list);
 	};
 
-	GenSSMap(GenSSMap &src): GenMapProto(), SSMap(src) {}
-	GenSSMap(const GenSSMap &src): GenMapProto(), SSMap(src) {};//keys=src.keys; data=src.data;}
+	GenSSMap(GenSSMap &src): GenMapProto(), SSMap(src) {multimap=false;}
+	GenSSMap(const GenSSMap &src): GenMapProto(), SSMap(src) {multimap=false;};//keys=src.keys; data=src.data;}
 
-	GenSSMap(std::multimap<GenString,GenString> &src): GenMapProto(), SSMap() {
+	GenSSMap(std::multimap<GenString,GenString> &src): GenMapProto(), SSMap() {multimap=false;
 		for(auto it:src) {
 			_set(it.first,it.second);
 		}

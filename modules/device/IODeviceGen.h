@@ -22,7 +22,7 @@ protected:
 public:
 //	IODeviceGen(unsigned int num0, GenString name0, GenString modelname0,std::vector<unsigned int> pins0, GenMap subpaths0, GenString path0):path(path0){pins=pins0;modelname=modelname0;name=name0;subpaths=subpaths0;num=num0;}
 	virtual bool notify(GenString ename,Event*event=0){return false;}; // update the model from the physical device called from the driver
-	virtual IOReader *getReader(){return 0;}
+
 	virtual void init(){};
 };
 
